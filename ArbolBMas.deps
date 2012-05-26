@@ -1,9 +1,0 @@
-ArbolBMas.o ArbolBMas.deps : ArbolBMas.cpp ArbolBMas.h Hoja.h Nodo.h Interno.h
-
-ArbolBMas.h:
-
-Hoja.h:
-
-Nodo.h:
-
-Interno.h:
