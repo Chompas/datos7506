@@ -1,0 +1,7 @@
+Interno.o Interno.deps : Interno.cpp Interno.h Hoja.h Nodo.h
+
+Interno.h:
+
+Hoja.h:
+
+Nodo.h:
