@@ -132,6 +132,8 @@ void pruebaArbolBMas(){
 		cout << miBMas -> obtenerRegistro("1;00:30-01:40 12/02/2012;153;-1;1") << endl;
 	
 	cout << "consulta del arbol B+ ok" << endl;
+
+	delete miBMas;
 		
 }
 

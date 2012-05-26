@@ -3,7 +3,7 @@
 #include "ArbolBMas.h"
 
 ArbolBMas::ArbolBMas(int capaHoja, int capaInterno){
-	this -> raiz 		= new Hoja(this -> capaHoja);
+	this -> raiz 		= new Hoja(capaHoja);
 	this -> cantNiveles = 0;
 	this -> capaHoja 	= capaHoja;
 	this -> capaInterno = capaInterno;
@@ -20,6 +20,7 @@ void ArbolBMas::agregarRegistro(std::string registro){
 		//mi raiz es un Interno
 			
 	}
+	delete this->raiz;
 	this -> raiz = new Interno(); 
 }        
 
