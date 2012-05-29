@@ -20,5 +20,11 @@ const int LONGITUD_MINIMA_REGISTRO_DE_LONGITUD_FIJA = 5; 	//Este numero se deter
 const int CCRLF4 = 1;									 	//Campos de control de RegistroDeLongitudFija de 4 bytes
 const int LCCRLF4 = CCRLF4 * 4; 							//Longitud de campos de control de RegistroDeLongitudFija
 															//de 4 bytes
+const int LCCBRLF = 10;										//Longitud en bytes del total de compos de control del bloque
+															//con RLF
+const int LCCBRLV = 6;										//Longitud en bytes del total de compos de control del bloque
+															//con RLV
+const int LCCRLV = 4;										//Longitud en bytes del campo de control de cada RLV.
+
 
 #endif /* CONSTANTES__H__ */

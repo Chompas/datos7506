@@ -25,10 +25,31 @@ private:
 											//Debe ser multiplo de 512.
 	int espacioLibre;						//variable donde se almacena la cantidad de bytes libres al final
 											//del bloque.
-	char RLF;								//variable que indica si los registros en el bloque son de long. fija ('s')
-											//o no ('n').
+	bool RLF;								//variable que indica si los registros en el bloque son de long. fija (True)
+											//o no (False).
 	int longitudRLF;						//variable que indica la longitud de los registros de longitud fija. Si
 											//son de long. variable, el valor es 0 y no se lo incluye en el stream.
+	bool registroDeControl;					//Variable que indica se el bloque tiene activo el registro de control
+											//(true), o no (false). registroDeControl es un registro especial donde
+											//el usuario puede guardar en el bloque informacion adicional
+											//distinta a la del resto de los registros. Como es especial, para
+											//su uso habra primitivas especiales. El registro de control no se puede
+											//eliminar individualmente, solo vaciando el bloque.
+
+
+	/*
+	 * Activa la señal de existencia de registro 0
+	 * pre: Debe haber sido insertado el registro 0.
+	 * pos: Se activa la señal de existencia de registro 0;
+	 */
+	void activarRegistroDeControl ();
+
+	/*
+	 * Desactiva la señal de existencia de registro 0
+	 * pre: Debe haber sido eliminado el registro 0.
+	 * pos: Se desactiva la señal de existencia de registro 0;
+	 */
+	void desactivarRegistroDeControl ();
 
 	/*
 	* Establece la cantidad de espacio libre en bytes que hay al final del bloque.
@@ -55,12 +76,12 @@ private:
 	 */
 	Registro* clonarRegistro (Registro* registro);
 
-
 	/*
 	*****************************************************************************************************
 	* funciones publicas de la clase.
 	*****************************************************************************************************
 	*/
+
 	public:
 		/*
 		 * Constructor de Bloque con un parametros.
@@ -102,6 +123,17 @@ private:
 		bool insertarRegistro (Registro *registro);
 
 		/*
+		 * Inserta el registro de control en el bloque.
+		 * pre: registro debe ser distinto de NULL. No debe existir el registro de control en el bloque. Si existe,
+		 * 		no hace nada.
+		 * pos: Si hay espacio suficiente en el bloque, se agrega una copia del registro y se devuelve true.
+		 * 		De lo contrario, no se inserta y devuelve false.
+		 *
+		 * registroDeControl: puntero a Registro.
+		 */
+		bool insertarRegistroDeControl (Registro *registroDeControl);
+
+		/*
 		 * Actualiza el registro de la posicion posicionRegistro con registro;
 		 * pre: posicionRegistro debe ser una posicion de registro valido y > 0. registro debe ser una referencia a un registro.
 		 * 		Debe der distinto de NULL.
@@ -112,6 +144,17 @@ private:
 		 * registro: puntero a un registro.
 		 */
 		bool actualizarRegistro (unsigned int posicionRegistro, Registro* registro);
+
+		/*
+		 * Actualiza el registro de control con registroDeControl;
+		 * pre: Debe existir el registro cero. Si no existe, no hace nada. registro debe ser una referencia a un registro.
+		 * 		Debe der distinto de NULL.
+		 * pos: Devuelve true si se pudo realizar la actualizacion con exito. De lo contrario, no se hace nada y devuelve false.
+		 *
+		 * registroDeControl: puntero a un registro.
+		 */
+		bool actualizarRegistroDeControl (Registro* registroDeControl);
+
 		/*
 		 * Elimina el registro en la posicion posicionRegistro
 		 * pre: posicionRegistro debe ser una posicion de registro valido. Debe ser > 0.
@@ -131,6 +174,14 @@ private:
 		 * posicionRegistro: posicion del registro dentro del bloque.
 		 */
 		Registro* obtenerRegistro (unsigned int posicionRegistro);
+
+		/*
+		 * Devuelve una copia del registro de control.
+		 * pre: Debe existir el registro de control.
+		 * pos: Se el registro cero existe, devuelve la referencia al registro cero. En caso contrario devuelve NULL.
+		 * 		EL USUARIO DEBE ENCARGARSE DE LIBERAR LA MEMORIA UTILIZADA.
+		 */
+		Registro* obtenerRegistroDeControl ();
 
 		/*
 		 * Elimina todos los registros del bloque, incluyendo el registro de control.
@@ -159,6 +210,7 @@ private:
 		 * pos: Se devuelve la posicion en el stream del bloque del primer byte libre.
 		 */
 		int obtenerEspacioLibre ();
+
 		/*
 		 * Indica si el bloque esta vacio.
 		 * pre: -

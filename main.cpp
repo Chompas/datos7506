@@ -1,5 +1,6 @@
 #include <iostream>
 #include <fstream>
+#include <ctime>
 //clases
 #include "ArbolBMas.h"
 #include "Buffer.h"
@@ -138,6 +139,10 @@ void pruebaArbolBMas(){
 }
 
 int main (){
+
+	time_t tiempo;
+
+	cout << time(NULL) << endl;
 
 	prueba_RegistroDeLongitudVariable();
 
