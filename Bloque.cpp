@@ -119,6 +119,8 @@
 
 		int Bloque::obtenerEspacioLibre (){return 0;}
 
+		bool Bloque::existeRegistroDeControl (){return 0;}
+
 		bool Bloque::vacio (){return 0;}
 
 		int Bloque::serializar (Buffer* buffer, int posicion){return 0;}
