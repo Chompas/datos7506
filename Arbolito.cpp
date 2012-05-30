@@ -14,6 +14,7 @@
 #include "Disco/RegistroDeLongitudVariable.h"
 #include "Disco/RegistroDeLongitudFija.h"
 #include "Disco/IndicesManager.h"
+#include "Claves/Incidente.h"
 
 
 #include <string.h>
@@ -25,6 +26,23 @@
 #include <ctime>
 
 using namespace std;
+
+void altaPorTeclado() {
+	string incidente;
+	cin >> incidente;
+	Incidente *unIncidente = new Incidente(incidente);
+
+	unIncidente->imprimirIncidenteConClaves();
+
+	Incidente *incidente2 = new Incidente();
+	Buffer* buffer = new Buffer();
+	unIncidente->serializar(buffer, 0);
+	incidente2->hidratar(buffer, 0);
+
+	cout << "INCIDENTE 2 Hidratado" << endl;
+	incidente2->imprimirIncidenteConClaves();
+
+}
 
 void prueba_lecturaDeArchivoIndice(){
 	IndicesManager *indiceLineas = new IndicesManager("Archivos/lineas.txt");
@@ -476,5 +494,7 @@ int main(int argc, char* argv[])
 	prueba_RegistroDeLongitudFija();
 
 	prueba_lecturaDeArchivoIndice();
+
+	altaPorTeclado();
 
 }
