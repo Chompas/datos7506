@@ -212,6 +212,13 @@ private:
 		int obtenerEspacioLibre ();
 
 		/*
+		 * Indica se existe el registro de control en el bloque.
+		 * pre: -
+		 * pos: Devuelve true si existe el registro de control en el bloque. De lo contrario, devuelve false.
+		 */
+		bool existeRegistroDeControl ();
+
+		/*
 		 * Indica si el bloque esta vacio.
 		 * pre: -
 		 * pos: Si el bloque no contiene registros, devuelve true. De lo contrario, devuelve false.
