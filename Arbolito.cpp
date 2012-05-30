@@ -13,6 +13,7 @@
 #include "Disco/Registro.h"
 #include "Disco/RegistroDeLongitudVariable.h"
 #include "Disco/RegistroDeLongitudFija.h"
+#include "Disco/IndicesManager.h"
 
 
 #include <string.h>
@@ -24,6 +25,22 @@
 #include <ctime>
 
 using namespace std;
+
+void prueba_lecturaDeArchivoIndice(){
+	IndicesManager *indiceLineas = new IndicesManager("Archivos/lineas.txt");
+	IndicesManager *indiceFallas = new IndicesManager("Archivos/fallas.txt");
+	indiceLineas->imprimirCatalogo();
+	indiceFallas->imprimirCatalogo();
+
+	cout << "Busco la falla 1:" << endl;
+	string falla = indiceFallas->obtenerValor(1);
+	cout << falla << endl;
+
+	cout << "Busco la clave de la falla Sarasa:" << endl;
+	int fallaClave = indiceFallas->obtenerClave("Sarasa");
+	cout << fallaClave << endl;
+
+}
 
 void prueba_RegistroDeLongitudVariable(){
 Registro* registro1 = new RegistroDeLongitudVariable();
@@ -457,5 +474,7 @@ int main(int argc, char* argv[])
 	prueba_RegistroDeLongitudVariable();
 
 	prueba_RegistroDeLongitudFija();
+
+	prueba_lecturaDeArchivoIndice();
 
 }
