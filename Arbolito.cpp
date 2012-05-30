@@ -8,19 +8,125 @@
 #include "Arbolito.h"
 #include "Arbol/BKDArbol.h"
 #include "Arbol/BKDManagerMemoria.h"
-
 #include "Disco/Buffer.h"
+#include "Disco/Bloque.h"
 #include "Disco/Registro.h"
+#include "Disco/RegistroDeLongitudVariable.h"
+#include "Disco/RegistroDeLongitudFija.h"
 
-#include <string>
+
+#include <string.h>
 #include <iostream>
 #include <fstream>
 #include <sstream>
 #include <stdio.h>
 #include <vector>
+#include <ctime>
 
 using namespace std;
 
+void prueba_RegistroDeLongitudVariable(){
+Registro* registro1 = new RegistroDeLongitudVariable();
+int longitudDato = 9; //entero + cadena de 5 bytes
+char* stream = new char[longitudDato];
+char* ptr = stream;
+int edad = 28;
+
+cout << "Inicio de prueba de RegistroDeLongitudVariable" << endl;
+memcpy(ptr, &edad, sizeof(int));
+ptr += sizeof(int);
+memcpy(ptr, "Nacho", 5);
+
+registro1->setDato(stream, longitudDato);
+
+int longitudDato2;
+char* dato = registro1->getDato(longitudDato2);
+ptr = dato;
+
+int edad2;
+char* nombre = new char[6];
+memcpy(&edad2, ptr, sizeof(int));
+ptr += sizeof(int);
+memcpy(nombre, ptr, 5);
+nombre[5] = '\0';
+
+cout << "edad obtenida desde getDato(): " << edad2 << endl;
+cout << "nombre obtenido desde getDato(): " << string(nombre) << endl;
+
+Registro* registro2 = new RegistroDeLongitudVariable();
+Buffer* buffer = new Buffer();
+registro1->serializar(buffer, 0);
+registro2->hidratar(buffer, 0);
+
+cout << "longitud del registro obtenido despues de serializar e hidratar: " << registro2->getLongitud() << endl;
+
+delete []dato;
+delete []stream;
+delete []nombre;
+delete registro1;
+delete registro2;
+delete buffer;
+
+cout << "Fin de la prueba" << endl;
+}
+
+void prueba_RegistroDeLongitudFija(){
+Registro* registro1 = new RegistroDeLongitudFija(20);
+int longitudDato = 9; //entero + cadena de 5 bytes
+char* stream = new char[longitudDato];
+char* ptr = stream;
+int edad = 28;
+
+cout << "Inicio de prueba de RegistroDeLongitudFija" << endl;
+memcpy(ptr, &edad, sizeof(int));
+ptr += sizeof(int);
+memcpy(ptr, "Nacho", 5);
+
+registro1->setDato(stream, longitudDato);
+
+int longitudDato2;
+char* dato = registro1->getDato(longitudDato2);
+ptr = dato;
+
+int edad2;
+char* nombre = new char[6];
+memcpy(&edad2, ptr, sizeof(int));
+ptr += sizeof(int);
+memcpy(nombre, ptr, 5);
+nombre[5] = '\0';
+
+cout << "edad obtenida desde getDato(): " << edad2 << endl;
+cout << "nombre obtenido desde getDato(): " << string(nombre) << endl;
+
+Registro* registro2 = new RegistroDeLongitudFija(20);
+Buffer* buffer = new Buffer();
+registro1->serializar(buffer, 0);
+registro2->hidratar(buffer, 0);
+
+cout << "longitud del registro obtenido despues de serializar e hidratar: " << registro2->getLongitud() << endl;
+
+int longitudDato3;
+char* dato2 = registro2->getDato(longitudDato3);
+ptr = dato2;
+
+memcpy(&edad2, ptr, sizeof(int));
+ptr += sizeof(int);
+memcpy(nombre, ptr, 5);
+nombre[5] = '\0';
+
+cout << "edad obtenida desde getDato() despues de serializar e hidratar: " << edad2 << endl;
+cout << "nombre obtenido desde getDato() despues de serializar e hidratar: " << string(nombre) << endl;
+
+delete []dato;
+delete []dato2;
+delete []stream;
+delete []nombre;
+delete registro1;
+delete registro2;
+delete buffer;
+
+cout << "Fin de la prueba" << endl;
+}
 
 int PruebaArbolB1()
 {
@@ -320,13 +426,9 @@ int PruebaArbolDisco()
 }
 
 
-
-
-
-
 int main(int argc, char* argv[])
 {
-	try
+	/*try
 	{
 		return PruebaArbolB1();
 		//return PruebaRegistros();
@@ -343,14 +445,17 @@ int main(int argc, char* argv[])
 	catch (const int& ex)
 	{
 		cerr << "Error: código " << ex <<endl;
+
 	}
 	catch (...)
 	{
 		cerr << "Error no especificado" <<endl;
 	}
+*/
+	cout << time(NULL) << endl;
+
+	prueba_RegistroDeLongitudVariable();
+
+	prueba_RegistroDeLongitudFija();
+
 }
-
-
-
-
-

@@ -149,6 +149,7 @@ BKDNodo* BKDNodoHoja::ResolverOverflow(TClave& clavePromovida)
 
 		for(int i = 0; i < aCopiar; i++)
 		{
+
 			ri--;
 			reg.clave = ri->clave;
 			reg.valor = ri->valor;

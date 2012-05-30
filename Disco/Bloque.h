@@ -70,6 +70,14 @@ private:
 	size_t calcularEspacioLibre ();
 
 	/*
+	 * Obtiene el limite superior de la cantidad de registros, dado que este es variable segun exista o no
+	 * el registro de control.
+	 * pre: -
+	 * pos: Devuelve el limite superior de la cantidad de registros.
+	 */
+	unsigned int obtenerLimiteSuperior ();
+
+	/*
 	 * Clona un registro.
 	 * pre: registro debe ser una referancia a un registro distinto de NULL.
 	 * pos: Revuelve una copia de registro. EL USUARIO DEBE ENCARGARSE DE LIBERAR LA MEMORIA UTILIZADA.
