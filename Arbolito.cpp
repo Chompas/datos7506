@@ -40,6 +40,8 @@ void prueba_lecturaDeArchivoIndice(){
 	int fallaClave = indiceFallas->obtenerClave("Sarasa");
 	cout << fallaClave << endl;
 
+	delete indiceLineas;
+	delete indiceFallas;
 }
 
 void prueba_RegistroDeLongitudVariable(){

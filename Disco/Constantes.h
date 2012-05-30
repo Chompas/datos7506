@@ -25,6 +25,8 @@ const int LCCBRLF = 10;										//Longitud en bytes del total de compos de cont
 const int LCCBRLV = 6;										//Longitud en bytes del total de compos de control del bloque
 															//con RLV
 const int LCCRLV = 4;										//Longitud en bytes del campo de control de cada RLV.
-
+const char S = 'S';											//Caracter que indica presencia de registro cero en stream.
+const char N = 'N';											//Caracter que indica ausencia de registro cero en stream.
+const int LR = 50;											//Tamanio de registro de longitud fija por defecto
 
 #endif /* CONSTANTES__H__ */

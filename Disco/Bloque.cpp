@@ -5,7 +5,10 @@
  *      Author: nacho
  */
 
+#include <string.h>
 #include "Bloque.h"
+#include "RegistroDeLongitudFija.h"
+#include "RegistroDeLongitudVariable.h"
 #include "Constantes.h"
 
 	void Bloque::activarRegistroDeControl (){
@@ -55,7 +58,24 @@
 		return limiteSuperior;
 	}
 
-	Registro* Bloque::clonarRegistro (Registro* registro) {return 0;}
+	Registro* Bloque::clonarRegistro (Registro* registro) {
+		Buffer* regBuf = new Buffer;
+		Registro* auxReg;
+
+		registro->serializar(regBuf, 0);
+		if (this->RLF){
+			auxReg = new RegistroDeLongitudFija(registro->getLongitud());
+			auxReg->hidratar(regBuf,0);
+			}
+		else{
+			auxReg = new RegistroDeLongitudVariable();
+			auxReg->hidratar(regBuf, 0);
+			}
+
+		delete regBuf;
+
+		return auxReg;
+	}
 
 	/*
 	*****************************************************************************************************
@@ -236,8 +256,163 @@
 			return (this->registros.size() == 0);
 		}
 
-		int Bloque::serializar (Buffer* buffer, int posicion){return 0;}
+		int Bloque::serializar (Buffer* buffer, int posicion){
+			char* stream;
+			char* ptr;
+			int cantidadRegistros = obtenerCantidadRegistros();
+//			int espaciolibre = obtenerEspacioLibre();
+			stream = new char[obtenerLongitud()];
 
-		int Bloque::hidratar (Buffer* buffer, int posicion){return 0;}
+			//se carga todo el buffer con basura
+			memset (stream, BASURA, this->obtenerLongitud());
 
-		bool Bloque::entra (Registro *registro){return 0;}
+			//se cargan los campos de control
+			ptr = stream;
+			//cantidad de registros
+			memcpy(ptr, &cantidadRegistros, sizeof (int));
+			ptr += sizeof (int);
+
+/*			//espacio libre
+			memcpy(ptr, &espaciolibre, sizeof (int));
+			ptr += sizeof (int);
+*/
+			//registro de lomgitud fija
+			switch (this->RLF){
+			case true:  memcpy (ptr, &S, sizeof(char));
+						break;
+			case false: memcpy (ptr, &N, sizeof(char));
+						break;
+			}
+			ptr++;
+
+			//Si los registros son de LF se agrega la longitud
+			if (this->RLF){
+				memcpy (ptr, &(this->longitudRLF), sizeof(int));
+				ptr++;
+			}
+
+			//presencia de registro de control
+			switch (existeRegistroDeControl()){
+			case true:  memcpy (ptr, &S, sizeof(char));
+						break;
+			case false: memcpy (ptr, &N, sizeof(char));
+						break;
+			}
+			ptr++;
+
+			//registros
+			if (!registros.empty()){
+				for (unsigned int indiceReg = 0; indiceReg < registros.size(); indiceReg++){
+					Buffer* regBuf = new Buffer;
+					registros[indiceReg]->serializar(regBuf, 0);
+					int longitud;
+					char* streamRegistro = regBuf->getStream(longitud);
+					int longitudRegistro = registros[indiceReg]->getLongitud();
+
+					memcpy(ptr, &longitudRegistro, sizeof (int));
+					ptr += sizeof(int);
+					memcpy (ptr, streamRegistro, longitudRegistro);
+					ptr+= longitudRegistro;
+
+					delete regBuf;
+					delete []streamRegistro;
+					}
+			}
+			buffer->setStream(stream, obtenerLongitud());
+			delete []stream;
+			return 0;
+
+		}
+
+		int Bloque::hidratar (Buffer* buffer, int posicion){
+			int longitud;
+			char* stream = buffer->getStream(longitud);
+
+			if (stream != NULL){
+				//carga campos de control
+				char* ptr = stream;
+				int cantidadRegistros;
+//				int espacioLibre;
+				char RLF;
+				int longitudRLF;
+				char registroDeControl;
+
+				//se vacia el bloque para dejarlo limpio.
+				vaciar();
+
+				memcpy(&cantidadRegistros, ptr, sizeof(int));
+				ptr += sizeof(int);
+
+/*				memcpy(&espacioLibre, ptr, sizeof(int));
+				actualizarEspacioLibre (espacioLibre);
+				ptr += sizeof(int);
+*/
+				memcpy(&RLF, ptr, sizeof(char));
+				switch (RLF){
+				case S: this->RLF = true;
+						break;
+				case N: this->RLF = false;
+						break;
+				}
+				ptr += sizeof(char);
+
+				if (this->RLF){
+					memcpy(&longitudRLF, ptr, sizeof(int));
+					ptr += sizeof(int);
+				}
+
+				memcpy(&registroDeControl, ptr, sizeof(char));
+				switch (registroDeControl){
+				case S: activarRegistroDeControl();
+						break;
+				case N: desactivarRegistroDeControl();
+						break;
+				}
+				ptr += sizeof(char);
+
+				//carga los registros
+				for (int indice = 0; indice < cantidadRegistros; indice++){
+					int longitudRegistro;
+					memcpy(&longitudRegistro, ptr, sizeof(int));
+					ptr += sizeof(int);
+
+					char* streamRegistro = new char[longitudRegistro];
+
+					memcpy (streamRegistro, ptr, longitudRegistro);
+					Buffer* regBuf = new Buffer;
+					regBuf->setStream(streamRegistro, longitudRegistro);
+						Registro* auxReg;
+
+						if (this->RLF){
+							auxReg = new RegistroDeLongitudFija(longitudRegistro);
+							auxReg->hidratar(regBuf,0);
+							}
+						else{
+							auxReg = new RegistroDeLongitudVariable();
+							auxReg->hidratar(regBuf, 0);
+							}
+
+					insertarRegistro (auxReg);
+					ptr += longitudRegistro;
+
+					delete regBuf;
+					delete auxReg;
+					delete[] streamRegistro;
+				}
+			}
+
+			actualizarEspacioLibre (this->calcularEspacioLibre());
+			delete []stream;
+			return 0;
+		}
+
+		bool Bloque::entra (Registro *registro){
+			int longitudStreamRegistro = registro->getLongitud();
+
+			bool entraTemp = false;
+
+			if ((obtenerEspacioLibre() - longitudStreamRegistro) >= 0)
+				entraTemp = true;
+
+			return entraTemp;
+		}
