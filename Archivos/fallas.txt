@@ -1,3 +1,4 @@
-1;Puerta Rota
-2;Sarasa
+1;Puerta_semi_rota
+2;Puerta_rota
 3;Frula
+4;Puerta
