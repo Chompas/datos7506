@@ -43,6 +43,18 @@
 		return (obtenerLongitud() - espacioOcupado);
 	}
 
+	unsigned int Bloque::obtenerLimiteSuperior (){
+		unsigned int limiteSuperior;
+
+		//por la presencia del registro cero, el limite superior es variable
+		if (!existeRegistroDeControl())
+			limiteSuperior = this->registros.size();
+		else
+			limiteSuperior = (this->registros.size() - 1);
+
+		return limiteSuperior;
+	}
+
 	Registro* Bloque::clonarRegistro (Registro* registro) {return 0;}
 
 	/*
@@ -101,27 +113,128 @@
 			return exito;
 		}
 
-		bool Bloque::actualizarRegistro (unsigned int posicionRegistro, Registro* registro){return 0;}
+		bool Bloque::actualizarRegistro (unsigned int posicionRegistro, Registro* registro){
+			bool exito = false;
 
-		bool Bloque::actualizarRegistroDeControl (Registro* registroDeControl){return 0;}
+			if ((posicionRegistro > 0) && (posicionRegistro <= obtenerLimiteSuperior())){
+				//se corre el indice de registros cuando no hay registro cero.
+				if (!existeRegistroDeControl())
+					posicionRegistro--;
 
-		bool Bloque::eliminarRegistro (unsigned int posicionRegistro){return 0;}
+				Registro* regAux = this->registros[posicionRegistro];
+				int longitudAux = regAux->getLongitud();
+				int nuevoEspacioLibre = obtenerEspacioLibre() + longitudAux;
+				if ((nuevoEspacioLibre - registro->getLongitud()) >= 0){
+					eliminarRegistro (posicionRegistro);
+					insertarRegistro (registro);
+					actualizarEspacioLibre (calcularEspacioLibre ());
+					exito = true;
+				}
+			}
 
-		Registro* Bloque::obtenerRegistro (unsigned int posicionRegistro){return 0;}
+			return exito;
+		}
 
-		Registro* Bloque::obtenerRegistroDeControl (){return 0;}
+		bool Bloque::actualizarRegistroDeControl (Registro* registroDeControl){
+			bool exito = false;
 
-		void Bloque::vaciar (){}
+			if (existeRegistroDeControl ()){
+				Registro* regAux = this->registros[0];
+				int longitudAux = regAux->getLongitud();
+				int nuevoEspacioLibre = obtenerEspacioLibre() + longitudAux;
+				if ((nuevoEspacioLibre - registroDeControl->getLongitud()) >= 0){
+					delete (this->registros[0]);
+					this->registros[0] = clonarRegistro(registroDeControl);
+					actualizarEspacioLibre (calcularEspacioLibre ());
+					exito = true;
+				}
+			}
+			return exito;
+		}
 
-		int Bloque::obtenerCantidadRegistros (){return 0;}
+		bool Bloque::eliminarRegistro (unsigned int posicionRegistro){
+			bool exito = false;
 
-		size_t Bloque::obtenerLongitud (){return 0;}
+			if ((posicionRegistro > 0) && (posicionRegistro <= obtenerLimiteSuperior())){
+				//se corre el indice de registros cuando no hay registro cero.
+				if (!existeRegistroDeControl())
+					posicionRegistro--;
 
-		int Bloque::obtenerEspacioLibre (){return 0;}
+				std::vector<Registro*>::iterator it = this->registros.begin();
+				unsigned int contador = 0;
+				while (( it != this->registros.end() ) && (contador < posicionRegistro)) {
+					it++;
+					contador++;
+				}
+				if (it != this->registros.end()){
+					delete *it;
+					this->registros.erase(it);
+					actualizarEspacioLibre (calcularEspacioLibre ());
+					exito = true;
+				}
+			}
 
-		bool Bloque::existeRegistroDeControl (){return 0;}
+			return exito;
+		}
 
-		bool Bloque::vacio (){return 0;}
+		Registro* Bloque::obtenerRegistro (unsigned int posicionRegistro){
+			Registro* auxReg = NULL;
+
+			if ((posicionRegistro > 0) && (posicionRegistro <= obtenerLimiteSuperior())){
+				//se corre el indice de registros cuando no hay registro cero.
+				if (!existeRegistroDeControl())
+					posicionRegistro--;
+
+				auxReg = this->registros[posicionRegistro];
+				auxReg = clonarRegistro (auxReg);
+			}
+
+			return auxReg;
+		}
+
+		Registro* Bloque::obtenerRegistroDeControl (){
+			Registro* regAux = NULL;
+
+			if (existeRegistroDeControl())
+				regAux = clonarRegistro (this->registros[0]);
+
+			return regAux;
+		}
+
+		void Bloque::vaciar (){
+			if (this->registros.size() > 0){
+				std::vector<Registro*>::iterator it = this->registros.begin();
+
+				for (unsigned int contador = 0; contador < this->registros.size(); contador++){
+					delete (*it);
+					it++;
+				}
+				this->registros.clear();
+
+				actualizarEspacioLibre (calcularEspacioLibre ());
+				desactivarRegistroDeControl();
+			}
+		}
+
+		int Bloque::obtenerCantidadRegistros (){
+			return (this->registros.size());
+		}
+
+		size_t Bloque::obtenerLongitud (){
+			return this->longitud;
+		}
+
+		int Bloque::obtenerEspacioLibre (){
+			return this->espacioLibre;
+		}
+
+		bool Bloque::existeRegistroDeControl (){
+			return this->registroDeControl;
+		}
+
+		bool Bloque::vacio (){
+			return (this->registros.size() == 0);
+		}
 
 		int Bloque::serializar (Buffer* buffer, int posicion){return 0;}
 
