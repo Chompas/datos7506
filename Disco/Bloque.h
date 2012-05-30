@@ -11,6 +11,7 @@
 #include "Buffer.h"
 #include "Registro.h"
 #include <vector>
+#include <stdlib.h>
 
 /*
  * Bloque: Modela un bloque de un Archivo, con una longitud en bytes fijo y multiplo de 512 (512 * 2 ^ x).
