@@ -50,14 +50,6 @@ void prueba_lecturaDeArchivoIndice(){
 	indiceLineas->imprimirCatalogo();
 	indiceFallas->imprimirCatalogo();
 
-	cout << "Busco la falla 1:" << endl;
-	string falla = indiceFallas->obtenerValor(1);
-	cout << falla << endl;
-
-	cout << "Busco la clave de la falla Sarasa:" << endl;
-	int fallaClave = indiceFallas->obtenerClave("Sarasa");
-	cout << fallaClave << endl;
-
 }
 
 void prueba_RegistroDeLongitudVariable(){
