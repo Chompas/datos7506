@@ -15,6 +15,8 @@
 #include <iostream>
 #include <fstream>
 #include <time.h>
+#include <stdlib.h>
+#include <string.h>
 
 Incidente::Incidente() {
 
