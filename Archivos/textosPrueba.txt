@@ -1,3 +1,13 @@
 Textos de Prueba para ingresar por teclado:
 
-Mitre;2010-12-2T12:12:45;Puerta_rota;Choque;12
+Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;15
+Belgrano_norte;2012-09-2T07:12:45;cierran_80;choque_con_estacion;1
+Sarmiento;2011-02-2T14:57:50;motores_al_50;choque_con_otra_formacion;6
+Sarmiento;2012-03-25T19:47:02;frena_80;choque_con_otra_formacion;12
+Mitre;2012-11-30T17:12:10;enganchan_mal_vagones;desacoplado;20
+Belgrano_norte;2010-10-22T12:09:25;motores_al_80;desacoplado;25
+Mitre;2012-05-17T08:55:22;no_cierra_puertas;descarrilado;5
+Urquiza;2011-03-15T18:26:09;frena_50;no_enciende;10
+Urquiza;2010-05-19T22:33:33;asientos_rotos_20;choque_con_otra_formacion;11
+Urquiza;2010-01-22T21:45:14;no_cierra_puertas;corte_energia_en_tramo;17
+
