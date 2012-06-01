@@ -461,7 +461,7 @@ void pruebaBloque (){
 	char* ptr = stream;
 	int edad = 28;
 
-	cout << "Inicio de prueba de RegistroDeLongitudVariable" << endl;
+	cout << "Inicio de prueba de Bloque" << endl;
 	memcpy(ptr, &edad, sizeof(int));
 	ptr += sizeof(int);
 	memcpy(ptr, "Nacho", 5);
@@ -488,11 +488,33 @@ void pruebaBloque (){
 	cout << "cantidad de registros de bloque1: " << bloque1->obtenerCantidadRegistros() << endl;
 	cout << "espacio libre de bloque1: " << bloque1->obtenerEspacioLibre() << endl;
 
+	bloque1->insertarRegistro(registro1);
+	cout << "se inserto registro" << endl;
 
+	cout << "cantidad de registros de bloque1: " << bloque1->obtenerCantidadRegistros() << endl;
+	cout << "espacio libre de bloque1: " << bloque1->obtenerEspacioLibre() << endl;
+
+	bloque1->insertarRegistro(registro1);
+	cout << "se inserto registro" << endl;
+
+	cout << "cantidad de registros de bloque1: " << bloque1->obtenerCantidadRegistros() << endl;
+	cout << "espacio libre de bloque1: " << bloque1->obtenerEspacioLibre() << endl;
+
+	Buffer* buffer = new Buffer();
+	bloque1->serializar(buffer, 0);
+	Bloque* bloque2 = new Bloque(512);
+	bloque2->hidratar(buffer, 0);
+
+	cout << "Se hizo serializar de registro1 y se hidrato sobre bloque2" << endl;
+	cout << "cantidad de registros de bloque2: " << bloque2->obtenerCantidadRegistros() << endl;
+	cout << "espacio libre de bloque2: " << bloque2->obtenerEspacioLibre() << endl;
+
+	delete buffer;
 	delete registro1;
 	delete []stream;
 	delete []nombre;
 	delete bloque1;
+	delete bloque2;
 	delete []dato;
 }
 

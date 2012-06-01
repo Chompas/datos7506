@@ -29,7 +29,7 @@
 		if (this->RLF)
 			espacioOcupado = LCCBRLF;
 		else
-			espacioOcupado = LCCBRLF;
+			espacioOcupado = LCCBRLV;
 
 		if (this->registros.size() > 0){
 			std::vector<Registro*>::iterator it = this->registros.begin();
