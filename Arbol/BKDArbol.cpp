@@ -32,21 +32,22 @@ BKDArbol* BKDArbol::CrearEnMemoria(const int capacidadNodoHoja, const int capaci
 //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
 BKDArbol* BKDArbol::CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes)
 {
-	return NULL; //** TODO
+	BKDArbol* arbol = new BKDArbol();
+	arbol->m_manager = new BKDManagerDisco(filePath, tamanioBloqueBytes);
+
+	return arbol;
 }
 
 BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath)
 {
-	return NULL; //** TODO
+	BKDArbol* arbol = new BKDArbol();
+	arbol->m_manager = new BKDManagerDisco(filePath);
+
+	return arbol;
 }
 
 
-
-
-
-
-
-bool BKDArbol::BuscarRegistro(const string& clave, TRegistro& registro)
+bool BKDArbol::BuscarRegistro(const BKDClave& clave, BKDRegistro** registro)
 {
 	BKDNodo* raiz = this->m_manager->GetNodoRaiz();
 	bool res = false;
@@ -54,6 +55,7 @@ bool BKDArbol::BuscarRegistro(const string& clave, TRegistro& registro)
 	if (raiz != NULL)
 	{
 		res = raiz->BuscarReg(clave, registro);
+
 		delete raiz;
 	}
 
@@ -61,11 +63,11 @@ bool BKDArbol::BuscarRegistro(const string& clave, TRegistro& registro)
 }
 
 
-bool BKDArbol::BuscarPorRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado)
+bool BKDArbol::BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
 {
 	resultado.clear();
 
-	if (claveFin < claveInicio)
+	if (claveFin.Comparar(claveInicio) == -1)
 	{
 		cerr << "Error: La clave de inicio debe ser menor o igual a la de fin" << endl;
 		return false;
@@ -84,7 +86,7 @@ bool BKDArbol::BuscarPorRango(const TClave& claveInicio, const TClave& claveFin,
 }
 
 
-bool BKDArbol::InsertarRegistro(const TRegistro& registro)
+bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 {
 	BKDNodo* raiz = this->m_manager->GetNodoRaiz();
 
@@ -110,9 +112,9 @@ bool BKDArbol::InsertarRegistro(const TRegistro& registro)
 
 		BKDNodo* reemplazo = this->m_manager->AgregarNodo(raiz->GetNivel());
 
-		TClave clavePromovida;
+		BKDClave* clavePromovida;
 
-		BKDNodo* hermanoDer = raiz->ResolverOverflow(clavePromovida);
+		BKDNodo* hermanoDer = raiz->ResolverOverflow(&clavePromovida);
 		raiz->ClonarNodo(reemplazo, false);
 
 		BKDNodoInterno* nuevaRaiz = BKDNodoInterno::PromoverRaiz(this->m_manager, raiz, clavePromovida,
@@ -125,6 +127,7 @@ bool BKDArbol::InsertarRegistro(const TRegistro& registro)
 		if (!this->m_manager->GuardarNodo(nuevaRaiz))
 			cerr << "Error al intentar guardar nueva raiz: " << nuevaRaiz->GetNumeroNodo() << endl;
 
+		delete clavePromovida;
 		delete reemplazo;
 		delete hermanoDer;
 		delete nuevaRaiz;
@@ -134,18 +137,22 @@ bool BKDArbol::InsertarRegistro(const TRegistro& registro)
 
 	delete raiz;
 
+	BKDClave* clave = registro.GetClave();
+
 	if (!ret)
-		cerr << "Error al intentar insertar registro con clave = " << registro.clave << endl;
+		cerr << "Error al intentar insertar registro con clave = " << clave->ToString() << endl;
+
+	delete clave;
 
 	return ret;
 }
 
-bool BKDArbol::ModificarRegistro(const TRegistro& registro)
+bool BKDArbol::ModificarRegistro(const BKDRegistro& registro)
 {
 	return false;
 }
 
-bool BKDArbol::EliminarRegistro(const string& clave)
+bool BKDArbol::EliminarRegistro(const BKDClave& clave)
 {
 	return false;
 }

@@ -9,6 +9,8 @@
 #define BKDARBOL_H_
 
 #include "BKDManager.h"
+#include "BKDClaves.h"
+#include "BKDRegistro.h"
 
 //representa un arbol B+ llevado a K-Dimensiones
 class BKDArbol
@@ -23,12 +25,12 @@ public:
 	static BKDArbol* CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes); //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
 	static BKDArbol* AbrirDeDisco(const std::string& filePath);
 
-	bool BuscarRegistro(const TClave& clave, TRegistro& registro);
-	bool BuscarPorRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado);
+	bool BuscarRegistro(const BKDClave& clave, BKDRegistro** registro);
+	bool BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado);
 
-	bool InsertarRegistro(const TRegistro& registro);
-	bool ModificarRegistro(const TRegistro& registro);
-	bool EliminarRegistro(const TClave& clave);
+	bool InsertarRegistro(const BKDRegistro& registro);
+	bool ModificarRegistro(const BKDRegistro& registro);
+	bool EliminarRegistro(const BKDClave& clave);
 
 
 	//PARA DEBUG

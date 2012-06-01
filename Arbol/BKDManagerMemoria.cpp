@@ -77,6 +77,16 @@ BKDNodo* BKDManagerMemoria::GetNodo(int nroNodo)
 		return GetCopiaNodo(it->second);
 }
 
+BKDNodo* BKDManagerMemoria::CrearNodoOffline(int nivel)
+{
+	//Nodo hoja o intermedio?
+	if (nivel == 0)
+		return new BKDNodoHoja(this, -1, this->m_capacidad_hoja, nivel);
+	else
+		return new BKDNodoInterno(this, -1, this->m_capacidad_interno, nivel);
+
+}
+
 BKDNodo* BKDManagerMemoria::AgregarNodo(int nivel)
 {
 	MapIterator it = (this->m_nodes.end()); //me voy al final

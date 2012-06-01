@@ -10,6 +10,8 @@
 
 #include <list>
 #include "Definiciones.h"
+#include "BKDClaves.h"
+#include "BKDRegistro.h"
 #include "BKDManager.h"
 class BKDManager; //forward declaration del manager
 
@@ -24,6 +26,8 @@ protected:
 	BKDManager* m_manager;
 
 public:
+	virtual ~BKDNodo() {}
+
 	int GetNumeroNodo();
 	int GetNivel();
 	int GetCapacidad();
@@ -32,16 +36,16 @@ public:
 	virtual bool HayOverflow() = 0;
 	virtual bool HayUnderflow() = 0;
 
-	virtual bool BuscarReg(const TClave& clave, TRegistro& registro) = 0;
-	virtual bool BuscarRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado) = 0;
+	virtual bool BuscarReg(const BKDClave& clave, BKDRegistro** registro) = 0;
+	virtual bool BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado) = 0;
 
-	virtual bool InsertarReg(const TRegistro& registro, bool& overflow) = 0;
-	virtual bool ModificarReg(const TRegistro& registro) = 0;
-	virtual bool EliminarReg(const TClave& clave) = 0;
+	virtual bool InsertarReg(const BKDRegistro& registro, bool& overflow) = 0;
+	virtual bool ModificarReg(const BKDRegistro& registro) = 0;
+	virtual bool EliminarReg(const BKDClave& clave) = 0;
 
 	//Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 	//Ante un error, devuelve NULL como retorno
-	virtual BKDNodo* ResolverOverflow(TClave& clavePromovida) = 0;
+	virtual BKDNodo* ResolverOverflow(BKDClave** clavePromovida) = 0;
 
 	//Recibe un puntero a nodo, el cual será modificado para ser un clon del nodo actual
 	virtual bool ClonarNodo(BKDNodo* nodo, bool clonarNroNodo) = 0;

@@ -22,10 +22,12 @@ public:
 	BKDManagerMemoria(int capacidadNodoHoja, int capacidadNodoInterno);
 	virtual ~BKDManagerMemoria();
 
-	//!!Importante: Es responsabilidad del caller liberar la memoria devuelta
+	//!!Importante: Es responsabilidad del caller liberar la memoria devuelta por todos los metodos
 	virtual BKDNodo* GetNodoRaiz();
 	virtual BKDNodo* GetNodoPrimeraHoja();
 	virtual BKDNodo* GetNodo(int nroNodo);
+
+	virtual BKDNodo* CrearNodoOffline(int nivel);
 
 	virtual BKDNodo* AgregarNodo(int nivel);
 	virtual bool GuardarNodo(BKDNodo* nodo);

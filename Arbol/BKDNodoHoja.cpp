@@ -10,10 +10,22 @@
 
 using namespace std;
 
-typedef list<TRegistro>::iterator RegsIterator;
+typedef list<BKDRegistro*>::iterator RegsIterator;
 
 
+BKDNodoHoja::~BKDNodoHoja()
+{
+	if (this->m_registros.size() > 0)
+	{
+		//recorrer los registros y deletearlos
+		for (RegsIterator it = this->m_registros.begin(); it != this->m_registros.end(); it++)
+		{
+			delete *it;
+		}
 
+		this->m_registros.clear();
+	}
+}
 
 BKDNodoHoja::BKDNodoHoja(BKDManager* manager, int nroNodo, int capacidad, int nivel)
 {
@@ -21,8 +33,8 @@ BKDNodoHoja::BKDNodoHoja(BKDManager* manager, int nroNodo, int capacidad, int ni
 	this->m_nivel = nivel;
 	this->m_manager = manager;
 	this->m_nro_nodo = nroNodo;
-	this->siguienteHoja = 0;
-	this->registros.clear();
+	this->m_siguienteHoja = 0;
+	this->m_registros.clear();
 }
 
 BKDNodoHoja::BKDNodoHoja(const BKDNodoHoja& ref)
@@ -31,19 +43,24 @@ BKDNodoHoja::BKDNodoHoja(const BKDNodoHoja& ref)
 	this->m_nivel = ref.m_nivel;
 	this->m_manager = ref.m_manager;
 	this->m_nro_nodo = ref.m_nro_nodo;
-	this->siguienteHoja = ref.siguienteHoja;
-	this->registros.clear();
-	this->registros.assign(ref.registros.begin(), ref.registros.end());
+	this->m_siguienteHoja = ref.m_siguienteHoja;
+	this->m_registros.clear();
+
+	for (std::list<BKDRegistro*>::const_iterator i = ref.m_registros.begin(); i != ref.m_registros.end(); i++)
+	{
+		this->m_registros.push_back((*i)->Clonar());
+	}
+
 }
 
 int BKDNodoHoja::GetSiguienteHoja()
 {
-	return this->siguienteHoja;
+	return this->m_siguienteHoja;
 }
 
 bool BKDNodoHoja::HayOverflow()
 {
-	return (this->registros.size() > this->m_capacidad);
+	return (this->m_registros.size() > this->m_capacidad);
 }
 
 bool BKDNodoHoja::HayUnderflow()
@@ -53,57 +70,113 @@ bool BKDNodoHoja::HayUnderflow()
 		return false;
 
 	//sino, tengo que asegurar tener al menos capacidad / 2 registros.
-	return (this->registros.size() < (this->m_capacidad / 2));
+	return (this->m_registros.size() < (this->m_capacidad / 2));
 }
 
-bool BKDNodoHoja::BuscarReg(const TClave& clave, TRegistro& registro)
+bool BKDNodoHoja::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 {
 	//recorro en orden de claves, si existe lleno el registro
 
-	RegsIterator it = this->registros.begin();
+	RegsIterator it = this->m_registros.begin();
+	BKDClave* itClave = NULL;
 
-	while(it != this->registros.end() && it->clave < clave)
-		it++;
-
-	//si llegue al final de la lista o corte porque habia una clave mayor
-	if (it == this->registros.end() || it->clave != clave)
-		return false;
-
-	registro.clave = it->clave;
-	registro.valor = it->valor;
-	return true;
-}
-
-
-bool BKDNodoHoja::BuscarRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado)
-{
-	//recorro desde el primer registro y mientras la clave sea menor o igual al hasta
-	//si ademas es mayor o igual al desde, la agrego al resultado.
-
-	RegsIterator it = this->registros.begin();
-
-	while(it != this->registros.end() && it->clave <= claveFin)
+	while(it != this->m_registros.end())
 	{
-		if (it->clave >= claveInicio)
-			resultado.push_back(*it);
+		itClave = (*it)->GetClave();
+
+		if (itClave->Comparar(clave) != -1)
+			break;
+		else
+		{
+			delete itClave;
+			itClave = NULL;
+		}
 
 		it++;
 	}
 
+	//si llegue al final de la lista o corte porque habia una clave mayor
+	if (it == this->m_registros.end() || itClave->Comparar(clave) != 0)
+	{
+		if (itClave != NULL)
+		{
+			delete itClave;
+			itClave = NULL;
+		}
+
+		return false;
+	}
+
+	if (itClave != NULL)
+	{
+		delete itClave;
+		itClave = NULL;
+	}
+
+	(*registro) = (*it)->Clonar();
+
 	return true;
 }
 
 
-bool BKDNodoHoja::InsertarReg(const TRegistro& registro, bool& overflow)
+bool BKDNodoHoja::BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
+{
+	//recorro desde el primer registro y mientras la clave sea menor o igual al hasta
+	//si ademas es mayor o igual al desde, la agrego al resultado.
+
+	RegsIterator it = this->m_registros.begin();
+	BKDClave* itClave = NULL;
+
+	while(it != this->m_registros.end())
+	{
+		itClave = (*it)->GetClave();
+		if (itClave->Comparar(claveFin) == 1)
+			break;
+
+
+		if (itClave->Comparar(claveInicio) != -1)
+			resultado.push_back(((*it)->Clonar()));
+
+		delete itClave;
+		itClave = NULL;
+		it++;
+	}
+
+	//Si corto porque encontro una clave menor, libero la memoria de la ultima clave
+	if (it != this->m_registros.end() && itClave != NULL)
+		delete itClave;
+
+	return true;
+}
+
+
+bool BKDNodoHoja::InsertarReg(const BKDRegistro& registro, bool& overflow)
 {
 	//soy hoja, asi que inserto en el orden correspondiente, y si me pase de la capacidad tiro overflow
 
-	RegsIterator it = this->registros.begin();
+	RegsIterator it = this->m_registros.begin();
+	BKDClave* regClave = registro.GetClave();
+	BKDClave* itClave = NULL;
 
-	while(it != this->registros.end() && it->clave <= registro.clave)
+	while(it != this->m_registros.end())
+	{
+		itClave = (*it)->GetClave();
+
+		if (itClave->Comparar(*regClave) == 1)
+			break;
+
+		delete itClave;
+		itClave = NULL;
 		it++;
+	}
 
-	this->registros.insert(it, registro);
+	//Si corto por clave, la libero
+	if (it != this->m_registros.end() && itClave != NULL)
+		delete itClave;
+
+	delete regClave;
+
+	this->m_registros.insert(it, registro.Clonar());
 
 	overflow = this->HayOverflow();
 
@@ -118,19 +191,19 @@ bool BKDNodoHoja::InsertarReg(const TRegistro& registro, bool& overflow)
 	return !overflow;
 }
 
-bool BKDNodoHoja::ModificarReg(const TRegistro& registro)
+bool BKDNodoHoja::ModificarReg(const BKDRegistro& registro)
 {
 	return false;
 }
 
-bool BKDNodoHoja::EliminarReg(const TClave& clave)
+bool BKDNodoHoja::EliminarReg(const BKDClave& clave)
 {
 	return false;
 }
 
 //Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 //Ante un error, devuelve NULL como retorno
-BKDNodo* BKDNodoHoja::ResolverOverflow(TClave& clavePromovida)
+BKDNodo* BKDNodoHoja::ResolverOverflow(BKDClave** clavePromovida)
 {
 	//verifico que estoy en condicion de overflow
 	if (!this->HayOverflow())
@@ -141,24 +214,20 @@ BKDNodo* BKDNodoHoja::ResolverOverflow(TClave& clavePromovida)
 
 	if (ret != NULL)
 	{
-		ret->siguienteHoja = this->siguienteHoja;
-		this->siguienteHoja = ret->m_nro_nodo;
+		ret->m_siguienteHoja = this->m_siguienteHoja;
+		this->m_siguienteHoja = ret->m_nro_nodo;
 		int aCopiar = this->m_capacidad / 2;
-		RegsIterator ri = this->registros.end();
-		TRegistro reg;
+		RegsIterator ri = this->m_registros.end();
 
 		for(int i = 0; i < aCopiar; i++)
 		{
-
 			ri--;
-			reg.clave = ri->clave;
-			reg.valor = ri->valor;
-			ret->registros.push_front(reg);
-			this->registros.erase(ri);
+			ret->m_registros.push_front(*ri);
+			this->m_registros.erase(ri);
 		}
 
 		//Obtengo la clave del primero de los registros del nodo derecho (el nuevo)
-		clavePromovida = reg.clave;
+		(*clavePromovida) = (*(ret->m_registros.begin()))->GetClave();
 	}
 
 	return ret;
@@ -179,15 +248,22 @@ bool BKDNodoHoja::ClonarNodo(BKDNodo* nodoHoja, bool clonarNroNodo)
 	nodo->m_nivel = this->m_nivel;
 	if (clonarNroNodo)
 		nodo->m_nro_nodo = this->m_nro_nodo;
-	nodo->siguienteHoja = this->siguienteHoja;
-	nodo->registros.clear();
+	nodo->m_siguienteHoja = this->m_siguienteHoja;
 
-	for (RegsIterator ri = this->registros.begin(); ri != this->registros.end(); ri++)
+	if (nodo->m_registros.size() > 0)
 	{
-		TRegistro reg;
-		reg.clave = ri->clave;
-		reg.valor = ri->valor;
-		nodo->registros.push_back(reg);
+		//recorrer los registros y deletearlos
+		for (RegsIterator it = nodo->m_registros.begin(); it != nodo->m_registros.end(); it++)
+		{
+			delete *it;
+		}
+
+		nodo->m_registros.clear();
+	}
+
+	for (RegsIterator ri = this->m_registros.begin(); ri != this->m_registros.end(); ri++)
+	{
+		nodo->m_registros.push_back((*ri)->Clonar());
 	}
 
 	return true;
@@ -204,19 +280,11 @@ void BKDNodoHoja::DebugPrint(int nivel)
 
 	std::cout << "|" << this->m_nro_nodo << "| ";
 
-	for (RegsIterator ri = this->registros.begin(); ri != this->registros.end(); ri++)
+	for (RegsIterator ri = this->m_registros.begin(); ri != this->m_registros.end(); ri++)
 	{
-		std::cout << " [";
-		std::cout << "('";
-		std::cout << ri->clave;
-		std::cout << "') , ";
-		std::cout << "(";
-		std::cout << ri->valor;
-		std::cout << ")";
-		std::cout << "] ";
+		std::cout << (*ri)->ToString();
 	}
 
-	std::cout << " |<" << this->siguienteHoja << ">|";
-
+	std::cout << " |<" << this->m_siguienteHoja << ">|";
 }
 

@@ -15,10 +15,12 @@
 class BKDNodoHoja : public BKDNodo
 {
 protected:
-	std::list<TRegistro> registros;
-	int siguienteHoja;
+	std::list<BKDRegistro*> m_registros;
+	int m_siguienteHoja;
 
 public:
+	virtual ~BKDNodoHoja();
+
 	BKDNodoHoja(BKDManager* manager,int nroNodo, int capacidad, int nivel);
 	BKDNodoHoja(const BKDNodoHoja& ref);
 
@@ -27,16 +29,16 @@ public:
 	virtual bool HayOverflow();
 	virtual bool HayUnderflow();
 
-	virtual bool BuscarReg(const TClave& clave, TRegistro& registro);
-	virtual bool BuscarRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado);
+	virtual bool BuscarReg(const BKDClave& clave, BKDRegistro** registro);
+	virtual bool BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado);
 
-	virtual bool InsertarReg(const TRegistro& registro, bool& overflow);
-	virtual bool ModificarReg(const TRegistro& registro);
-	virtual bool EliminarReg(const TClave& clave);
+	virtual bool InsertarReg(const BKDRegistro& registro, bool& overflow);
+	virtual bool ModificarReg(const BKDRegistro& registro);
+	virtual bool EliminarReg(const BKDClave& clave);
 
 	//Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 	//Ante un error, devuelve NULL como retorno
-	virtual BKDNodo* ResolverOverflow(TClave& clavePromovida);
+	virtual BKDNodo* ResolverOverflow(BKDClave** clavePromovida);
 
 	//Recibe un puntero a nodo hoja, el cual será modificado para ser un clon del nodo actual
 	virtual bool ClonarNodo(BKDNodo* nodo, bool clonarNroNodo);

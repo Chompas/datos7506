@@ -213,3 +213,31 @@ int Incidente::hidratar (Buffer* buffer, int posicion){
 	return 0;
 }
 
+
+// Implementacion de BKDRegistro
+
+BKDClave* Incidente::GetClave() const
+{
+	return new ClaveInt(this->formacion);
+}
+
+std::string Incidente::ToString() const
+{
+	stringstream ss;
+	ss << " [";
+	ss << "('";
+	ss << this->formacion;
+	ss << "') , ";
+	ss << "(";
+	ss << this->linea;
+	ss << ")";
+	ss << "] ";
+
+	return ss.str();
+}
+
+BKDRegistro* Incidente::Clonar() const
+{
+	return new Incidente(*this);
+}
+

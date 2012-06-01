@@ -11,9 +11,23 @@
 
 using namespace std;
 
-typedef list<TClave>::iterator ClavesIterator;
+typedef list<BKDClave*>::iterator ClavesIterator;
 typedef list<int>::iterator HijosIterator;
 
+
+BKDNodoInterno::~BKDNodoInterno()
+{
+	if (this->m_claves.size() > 0)
+	{
+		//recorrer los registros y deletearlos
+		for (ClavesIterator it = this->m_claves.begin(); it != this->m_claves.end(); it++)
+		{
+			delete *it;
+		}
+
+		this->m_claves.clear();
+	}
+}
 
 BKDNodoInterno::BKDNodoInterno(BKDManager* manager, int nroNodo, int capacidad, int nivel)
 {
@@ -21,8 +35,8 @@ BKDNodoInterno::BKDNodoInterno(BKDManager* manager, int nroNodo, int capacidad, 
 	this->m_nivel = nivel;
 	this->m_manager = manager;
 	this->m_nro_nodo = nroNodo;
-	this->claves.clear();
-	this->hijos.clear();
+	this->m_claves.clear();
+	this->m_hijos.clear();
 }
 
 BKDNodoInterno::BKDNodoInterno(const BKDNodoInterno& ref)
@@ -31,15 +45,20 @@ BKDNodoInterno::BKDNodoInterno(const BKDNodoInterno& ref)
 	this->m_nivel = ref.m_nivel;
 	this->m_manager = ref.m_manager;
 	this->m_nro_nodo = ref.m_nro_nodo;
-	this->claves.clear();
-	this->claves.assign(ref.claves.begin(), ref.claves.end());
-	this->hijos.clear();
-	this->hijos.assign(ref.hijos.begin(), ref.hijos.end());
+	this->m_claves.clear();
+
+	for (std::list<BKDClave*>::const_iterator i = ref.m_claves.begin(); i != ref.m_claves.end(); i++)
+	{
+		this->m_claves.push_back((*i)->Clonar());
+	}
+
+	this->m_hijos.clear();
+	this->m_hijos.assign(ref.m_hijos.begin(), ref.m_hijos.end());
 }
 
 bool BKDNodoInterno::HayOverflow()
 {
-	return (this->claves.size() > this->m_capacidad);
+	return (this->m_claves.size() > this->m_capacidad);
 }
 
 bool BKDNodoInterno::HayUnderflow()
@@ -49,25 +68,25 @@ bool BKDNodoInterno::HayUnderflow()
 		return false;
 
 	//sino, tengo que asegurar tener al menos capacidad / 2 claves.
-	return (this->claves.size() < (this->m_capacidad / 2));
+	return (this->m_claves.size() < (this->m_capacidad / 2));
 }
 
-bool BKDNodoInterno::BuscarReg(const TClave& clave, TRegistro& registro)
+bool BKDNodoInterno::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 {
 	//Recorro en orden las claves hasta encontrar la primera mayor o igual.
 	//Si llegue al final, continuo por el ultimo hijo.
 
-	HijosIterator hi = this->hijos.begin();
-	ClavesIterator ci = this->claves.begin();
+	HijosIterator hi = this->m_hijos.begin();
+	ClavesIterator ci = this->m_claves.begin();
 
-	while (ci != this->claves.end() && *ci <= clave)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(clave) != 1)
 	{
 		ci++;
 		hi++;
 	}
 
 	//si por algun motivo llegue al final de la lista de hijos, hay algo mal en el árbol
-	if (hi == this->hijos.end())
+	if (hi == this->m_hijos.end())
 	{
 		cerr << "Error: Cantidad de hijos invalida en nodo " << this->m_nro_nodo << endl;
 		return false;
@@ -86,28 +105,28 @@ bool BKDNodoInterno::BuscarReg(const TClave& clave, TRegistro& registro)
 	return res;
 }
 
-bool BKDNodoInterno::BuscarRango(const TClave& claveInicio, const TClave& claveFin, std::list<TRegistro>& resultado)
+bool BKDNodoInterno::BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
 {
 	//recorro mis claves, desde la primera mayor o igual a mi desde, y corto cuando encuentro la primera mayor a mi hasta.
 	//en cada hijo de la clave en la que estoy parado, llamo de vuelta al metodo buscar Rango.
 
-	ClavesIterator ci = this->claves.begin();
-	HijosIterator hi = this->hijos.begin();
+	ClavesIterator ci = this->m_claves.begin();
+	HijosIterator hi = this->m_hijos.begin();
 	bool enIzquierdos = true;
 
-	while (ci != this->claves.end() && *ci < claveInicio)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(claveInicio) == -1)
 	{
 		ci++;
 		hi++;
 	}
 
-	if (*ci == claveInicio)
+	if ((*ci)->Comparar(claveInicio) == 0)
 	{
 		hi++;
 		enIzquierdos = false;
 	}
 
-	while (ci != this->claves.end() && *ci <= claveFin)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(claveFin) != 1)
 	{
 		BKDNodo* hijo = this->m_manager->GetNodo(*hi);
 
@@ -125,7 +144,7 @@ bool BKDNodoInterno::BuscarRango(const TClave& claveInicio, const TClave& claveF
 	}
 
 	//Si me falto el ultimo hijo derecho...
-	if (enIzquierdos && hi != this->hijos.end())
+	if (enIzquierdos && hi != this->m_hijos.end())
 	{
 		BKDNodo* hijo = this->m_manager->GetNodo(*hi);
 
@@ -139,27 +158,29 @@ bool BKDNodoInterno::BuscarRango(const TClave& claveInicio, const TClave& claveF
 		delete hijo;
 	}
 
-
 	return true;
 }
 
 
-bool BKDNodoInterno::InsertarReg(const TRegistro& registro, bool& overflow)
+bool BKDNodoInterno::InsertarReg(const BKDRegistro& registro, bool& overflow)
 {
 	overflow = false;
 
 	//soy nodo interno, primero busco el hijo al cual le corresponde la clave
-	HijosIterator hi = this->hijos.begin();
-	ClavesIterator ci = this->claves.begin();
+	HijosIterator hi = this->m_hijos.begin();
+	ClavesIterator ci = this->m_claves.begin();
+	BKDClave* regClave = registro.GetClave();
 
-	while (ci != this->claves.end() && *ci <= registro.clave)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(*regClave) != 1)
 	{
 		ci++;
 		hi++;
 	}
 
+	delete regClave;
+
 	//si por algun motivo llegue al final de la lista de hijos, hay algo mal en el árbol
-	if (hi == this->hijos.end())
+	if (hi == this->m_hijos.end())
 	{
 		cerr << "Error: Cantidad de hijos invalida en nodo " << this->m_nro_nodo << endl;
 		return false;
@@ -186,14 +207,17 @@ bool BKDNodoInterno::InsertarReg(const TRegistro& registro, bool& overflow)
 	//Si hubo overflow al insertar en el hijo, lo resuelvo
 	if (OFhijo)
 	{
-		TClave clavePromovida;
-		BKDNodo* hermanoDer = hijo->ResolverOverflow(clavePromovida);
+		BKDClave* clavePromovida = NULL;
+		BKDNodo* hermanoDer = hijo->ResolverOverflow(&clavePromovida);
+
+		if (clavePromovida == NULL)
+			cerr << "Error: la clave promovida devuelta por el overflow es NULL. Hijo: " << hijo->GetNumeroNodo() << endl;
 
 		if (hermanoDer != NULL)
 		{
-			this->claves.insert(ci, clavePromovida);
+			this->m_claves.insert(ci, clavePromovida);
 			hi++; //me muevo a la posicion donde corresponde insertar el nuevo hermano
-			this->hijos.insert(hi, hermanoDer->GetNumeroNodo());
+			this->m_hijos.insert(hi, hermanoDer->GetNumeroNodo());
 
 			if (!this->m_manager->GuardarNodo(hijo))
 				cerr << "Error al intentar guardar hijo izquierdo: " << hijo->GetNumeroNodo() << endl;
@@ -208,6 +232,9 @@ bool BKDNodoInterno::InsertarReg(const TRegistro& registro, bool& overflow)
 
 			res = true;
 		}
+		else
+			cerr << "Error: fallo el manejo de overflow en nodo: " << this->m_nro_nodo << endl;
+
 	}
 
 	//liberar de la memoria al hijo.
@@ -219,24 +246,24 @@ bool BKDNodoInterno::InsertarReg(const TRegistro& registro, bool& overflow)
 			cerr << "Error al intentar guardar nodo: " << this->m_nro_nodo << endl;
 
 	if (!res)
-		cerr << "Error al intentar insertar registro con clave = " << registro.clave << endl;
+		cerr << "Error al intentar insertar registro. Nodo: " << this->m_nro_nodo << endl;
 
 	return res;
 }
 
-bool BKDNodoInterno::ModificarReg(const TRegistro& registro)
+bool BKDNodoInterno::ModificarReg(const BKDRegistro& registro)
 {
 	return false;
 }
 
-bool BKDNodoInterno::EliminarReg(const TClave& clave)
+bool BKDNodoInterno::EliminarReg(const BKDClave& clave)
 {
 	return false;
 }
 
 //Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 //Ante un error, devuelve NULL como retorno
-BKDNodo* BKDNodoInterno::ResolverOverflow(TClave& clavePromovida)
+BKDNodo* BKDNodoInterno::ResolverOverflow(BKDClave** clavePromovida)
 {
 	//verifico que estoy en condicion de overflow
 	if (!this->HayOverflow())
@@ -248,25 +275,23 @@ BKDNodo* BKDNodoInterno::ResolverOverflow(TClave& clavePromovida)
 	if (ret != NULL)
 	{
 		int aCopiar = (this->m_capacidad / 2) + 1; //+ 1 xq copio el hijo y la clave a promover
-		ClavesIterator ci = this->claves.end();
-		HijosIterator hi = this->hijos.end();
-		TClave clave;
+		ClavesIterator ci = this->m_claves.end();
+		HijosIterator hi = this->m_hijos.end();
 
 		//copia
 		for(int i = 0; i < aCopiar; i++)
 		{
 			ci--;
 			hi--;
-			clave = *ci;
-			ret->claves.push_front(clave);
-			ret->hijos.push_front(*hi);
-			this->claves.erase(ci);
-			this->hijos.erase(hi);
+			ret->m_claves.push_front(*ci);
+			ret->m_hijos.push_front(*hi);
+			this->m_claves.erase(ci);
+			this->m_hijos.erase(hi);
 		}
 
 		//la clave a promover es la ultima copiada, que no pertenece realmente, asi que la borro
-		clavePromovida = clave;
-		ret->claves.pop_front();
+		*clavePromovida = *(ret->m_claves.begin());
+		ret->m_claves.pop_front();
 	}
 
 	return ret;
@@ -287,41 +312,55 @@ bool BKDNodoInterno::ClonarNodo(BKDNodo* nodoInt, bool clonarNroNodo)
 	nodo->m_nivel = this->m_nivel;
 	if (clonarNroNodo)
 		nodo->m_nro_nodo = this->m_nro_nodo;
-	nodo->claves.clear();
-	nodo->hijos.clear();
 
-	for (ClavesIterator ci = this->claves.begin(); ci != this->claves.end(); ci++)
+	if (nodo->m_claves.size() > 0)
 	{
-		nodo->claves.push_back(*ci);
+		//recorrer los registros y deletearlos
+		for (ClavesIterator it = nodo->m_claves.begin(); it != nodo->m_claves.end(); it++)
+		{
+			delete *it;
+		}
+
+		nodo->m_claves.clear();
 	}
 
-	for (HijosIterator hi = this->hijos.begin(); hi != this->hijos.end(); hi++)
+	for (ClavesIterator ci = this->m_claves.begin(); ci != this->m_claves.end(); ci++)
 	{
-		nodo->hijos.push_back(*hi);
+		BKDClave* clonClave = (*ci)->Clonar();
+		if (clonClave == NULL)
+			cerr << "Error al intentar clonar clave. Nodo: " << this->m_nro_nodo << endl;
+
+		nodo->m_claves.push_back(clonClave);
+		//no borro el clonClave, porque ahora forma parte de las claves del nodo nuevo
+	}
+
+	nodo->m_hijos.clear();
+	for (HijosIterator hi = this->m_hijos.begin(); hi != this->m_hijos.end(); hi++)
+	{
+		nodo->m_hijos.push_back(*hi);
 	}
 
 	return true;
 }
 
-BKDNodoInterno* BKDNodoInterno::PromoverRaiz(BKDManager* manager, BKDNodo* viejaRaiz, TClave clavePromovida, int hijoIzquierdo, int hijoDerecho)
+BKDNodoInterno* BKDNodoInterno::PromoverRaiz(BKDManager* manager, BKDNodo* viejaRaiz, BKDClave* clavePromovida, int hijoIzquierdo, int hijoDerecho)
 {
 	if (viejaRaiz == NULL)
 		return NULL;
 
-	if (clavePromovida == "" || clavePromovida.empty())
+	if (clavePromovida == NULL)
 		return NULL;
 
-	BKDNodoInterno* nuevaRaiz = new BKDNodoInterno(manager, viejaRaiz->GetNumeroNodo(),
-									viejaRaiz->GetCapacidad(), viejaRaiz->GetNivel() + 1);
+	BKDNodoInterno* nuevaRaiz = (BKDNodoInterno*)manager->CrearNodoOffline(viejaRaiz->GetNivel() + 1);
 
-	TClave nuevaClave = clavePromovida.c_str();
+	if (nuevaRaiz == NULL)
+		return NULL;
 
-	nuevaRaiz->claves.clear();
-	nuevaRaiz->hijos.clear();
+	nuevaRaiz->m_nro_nodo = viejaRaiz->GetNumeroNodo();
 
-	nuevaRaiz->claves.push_front(nuevaClave);
-	nuevaRaiz->hijos.push_front(hijoIzquierdo);
-	nuevaRaiz->hijos.push_back(hijoDerecho);
+	nuevaRaiz->m_claves.push_back(clavePromovida->Clonar());
+	nuevaRaiz->m_hijos.push_back(hijoIzquierdo);
+	nuevaRaiz->m_hijos.push_back(hijoDerecho);
 
 	return nuevaRaiz;
 }
@@ -339,14 +378,14 @@ void BKDNodoInterno::DebugPrint(int nivel)
 	{
 		std::cout << "|" << this->m_nro_nodo << "| ";
 
-		HijosIterator hi = this->hijos.begin();
-		for (ClavesIterator ci = this->claves.begin(); ci != this->claves.end(); ci++)
+		HijosIterator hi = this->m_hijos.begin();
+		for (ClavesIterator ci = this->m_claves.begin(); ci != this->m_claves.end(); ci++)
 		{
 			std::cout << " (";
 			std::cout << *hi;
 			std::cout << ")";
 			std::cout << " ['";
-			std::cout << *ci;
+			std::cout << (*ci)->ToString();
 			std::cout << "']";
 
 			hi++;
@@ -363,7 +402,7 @@ void BKDNodoInterno::DebugPrint(int nivel)
 	// sino, llamo a mis hijos a que se impriman
 	else//nivel < mi nivel
 	{
-		for (HijosIterator hi = this->hijos.begin(); hi != this->hijos.end(); hi++)
+		for (HijosIterator hi = this->m_hijos.begin(); hi != this->m_hijos.end(); hi++)
 		{
 			BKDNodo* hijo = this->m_manager->GetNodo(*hi);
 

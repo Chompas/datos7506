@@ -14,6 +14,10 @@
 //implementacion para manejo de almacenamiento de nodos en disco
 class BKDManagerDisco : public BKDManager
 {
+private:
+	void RefrescarRaiz();
+	BKDNodo* GetCopiaNodo(BKDNodo* nodo);
+
 protected:
 	std::string m_file_path;
 	std::fstream m_file;
@@ -22,6 +26,7 @@ protected:
 	BKDNodo* m_raiz;
 
 public:
+	BKDManagerDisco(std::string filePath); //constructor solo de lectura de archivos preexistentes
 	BKDManagerDisco(std::string filePath, int tamanioBytesBloque);
 	virtual ~BKDManagerDisco();
 
@@ -31,6 +36,8 @@ public:
 	virtual BKDNodo* GetNodoRaiz();
 	virtual BKDNodo* GetNodoPrimeraHoja();
 	virtual BKDNodo* GetNodo(int nroNodo);
+
+	virtual BKDNodo* CrearNodoOffline(int nivel);
 
 	virtual BKDNodo* AgregarNodo(int nivel);
 	virtual bool GuardarNodo(BKDNodo* nodo);

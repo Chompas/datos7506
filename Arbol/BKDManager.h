@@ -20,10 +20,14 @@ protected:
 	int m_capacidad_interno;
 
 public:
+	virtual ~BKDManager() {}
+
 	//!!Importante: Es responsabilidad del caller liberar la memoria devuelta
 	virtual BKDNodo* GetNodoRaiz() = 0;
 	virtual BKDNodo* GetNodoPrimeraHoja() = 0;
 	virtual BKDNodo* GetNodo(int nroNodo) = 0;
+
+	virtual BKDNodo* CrearNodoOffline(int nivel) = 0;
 
 	virtual BKDNodo* AgregarNodo(int nivel) = 0;
 	virtual bool GuardarNodo(BKDNodo* nodo) = 0;
