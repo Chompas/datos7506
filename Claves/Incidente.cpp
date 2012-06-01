@@ -77,37 +77,77 @@ Incidente::~Incidente() {
 }
 
 void Incidente::insertarLinea (string lineaStr) {
-	IndicesManager *indiceLineas = new IndicesManager("Archivos/lineas.txt");
-	int lineaClave = indiceLineas->obtenerClave(lineaStr);
-	linea = lineaClave;
+
+	//Si el usuario ingreso un guion asigno 0 para saber que esta clave no se usa
+	//Eso se usa unicamente para las busquedas
+	if (lineaStr == "-") {
+		linea = 0;
+	} else {
+		IndicesManager *indiceLineas = new IndicesManager("Archivos/lineas.txt");
+		int lineaClave = indiceLineas->obtenerClave(lineaStr);
+		linea = lineaClave;
+	}
+
 }
 
 void Incidente::insertarHorario (string horarioStr) {
 
-	struct tm tm;
-	time_t epoch;
-	if ( strptime(horarioStr.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) != NULL ) {
-		epoch = mktime(&tm);
+	//Si el usuario ingreso un guion asigno 0 para saber que esta clave no se usa
+	//Eso se usa unicamente para las busquedas
+	if (horarioStr == "-") {
+		horario = 0;
+	} else {
+		struct tm tm;
+		time_t epoch;
+		if ( strptime(horarioStr.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) != NULL ) {
+			epoch = mktime(&tm);
+		}
+
+		horario = epoch;
 	}
 
-	horario = epoch;
+
 
 }
 
 void Incidente::insertarFalla (string fallaStr) {
-	IndicesManager *indiceFallas = new IndicesManager("Archivos/fallas.txt");
-	int fallaClave = indiceFallas->obtenerClave(fallaStr);
-	falla = fallaClave;
+
+	//Si el usuario ingreso un guion asigno 0 para saber que esta clave no se usa
+	//Eso se usa unicamente para las busquedas
+	if (fallaStr == "-") {
+		falla = 0;
+	} else {
+		IndicesManager *indiceFallas = new IndicesManager("Archivos/fallas.txt");
+		int fallaClave = indiceFallas->obtenerClave(fallaStr);
+		falla = fallaClave;
+	}
+
 }
 
 void Incidente::insertarAccidente (string accidenteStr) {
-	IndicesManager *indiceAccidente = new IndicesManager("Archivos/accidentes.txt");
-	int accidenteClave = indiceAccidente->obtenerClave(accidenteStr);
-	accidente = accidenteClave;
+
+	//Si el usuario ingreso un guion asigno 0 para saber que esta clave no se usa
+	//Eso se usa unicamente para las busquedas
+	if (accidenteStr == "-") {
+		accidente = 0;
+	} else {
+		IndicesManager *indiceAccidente = new IndicesManager("Archivos/accidentes.txt");
+		int accidenteClave = indiceAccidente->obtenerClave(accidenteStr);
+		accidente = accidenteClave;
+	}
+
 }
 
 void Incidente::insertarFormacion (string formacionStr) {
-	formacion = atoi(formacionStr.c_str());
+
+	//Si el usuario ingreso un guion asigno 0 para saber que esta clave no se usa
+	//Eso se usa unicamente para las busquedas
+	if (formacionStr == "-") {
+		formacion = 0;
+	} else {
+		formacion = atoi(formacionStr.c_str());
+	}
+
 }
 
 void Incidente::imprimirIncidenteConClaves () {
