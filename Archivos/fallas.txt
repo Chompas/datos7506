@@ -1,4 +1,13 @@
-1;Puerta_semi_rota
-2;Puerta_rota
-3;Frula
-4;Puerta
+1;no_cierra_puertas
+2;cierran_50
+3;cierran_80
+4;enganchan_mal_vagones
+5;no_frena
+6;frena_50
+7;frena_80
+8;asientos_rotos_20
+9;asientos_rotos_50
+10;asientos_rotos_80
+11;motores_al_30
+12;motores_al_50
+13;motores_al_80

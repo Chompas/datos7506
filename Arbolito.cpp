@@ -28,19 +28,22 @@
 using namespace std;
 
 void altaPorTeclado() {
+
+	cout << "Ingresar Incidente con formato: linea;hora;falla;accidente;formacion" << endl;
+	cout << "Ejemplo: Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;15" << endl;
+	cout << "Para finalizar la insercion ingresar * y presionar enter" << endl;
 	string incidente;
 	cin >> incidente;
-	Incidente *unIncidente = new Incidente(incidente);
+	while (incidente != "*") {
 
-	unIncidente->imprimirIncidenteConClaves();
+		Incidente *unIncidente = new Incidente(incidente);
+		//Aca en vez de imprimir el incidente hay que llamar a insertar arbol
+		unIncidente->imprimirIncidenteConClaves();
 
-	Incidente *incidente2 = new Incidente();
-	Buffer* buffer = new Buffer();
-	unIncidente->serializar(buffer, 0);
-	incidente2->hidratar(buffer, 0);
+		cin >> incidente;
+	}
 
-	cout << "INCIDENTE 2 Hidratado" << endl;
-	incidente2->imprimirIncidenteConClaves();
+	cout << "=== Fin de la insercion ===" << endl;
 
 }
 
