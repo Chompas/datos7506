@@ -18,6 +18,8 @@ public:
 	virtual ~RegistroDeLongitudVariable();
 
 	int getLongitud();
+
+	void setTipoRegistro ();
 };
 
 #endif /* REGISTRODELONGITUDVARIABLE__H__ */

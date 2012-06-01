@@ -29,6 +29,10 @@
 		return (this->clonarDato(this->dato, this->longitudDato));
 	}
 
+	string Registro::getTipoRegistro (){
+		return this->tipoRegistro;
+	}
+
 	void Registro::setDato(char* dato, int longitudDato){
 		if ((dato != NULL) && (longitudDato > 0)){
 			if (this->dato != NULL) delete [](this->dato);
@@ -82,4 +86,8 @@
 		char* datoClonado = new char[longitudDato];
 		memcpy (datoClonado, dato, longitudDato);
 		return datoClonado;
+	}
+
+	void Registro::setTipoRegistro (){
+
 	}

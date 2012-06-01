@@ -43,7 +43,7 @@
 			}
 		}
 
-		return (obtenerLongitud() - espacioOcupado);
+		return (getLongitud() - espacioOcupado);
 	}
 
 	unsigned int Bloque::obtenerLimiteSuperior (){
@@ -77,6 +77,17 @@
 		return auxReg;
 	}
 
+	void Bloque::setRLF (Registro *registro){
+
+		//si no hay ningun registro de datos toma el tipo de registro del primero que se inserte
+		if ((this->obtenerCantidadRegistros() == 0) || ((this->obtenerCantidadRegistros() == 1) and this->existeRegistroDeControl())){
+			if (registro->getTipoRegistro() == RLFija)
+				this->RLF = true;
+			else if (registro->getTipoRegistro() == RLVariable)
+				this->RLF = false;
+		}
+	}
+
 	/*
 	*****************************************************************************************************
 	* funciones publicas de la clase.
@@ -103,6 +114,8 @@
 
 		bool Bloque::insertarRegistro (Registro *registro){
 			bool exito = false;
+
+			this->setRLF(registro);
 
 			if (entra (registro)){
 				this->registros.push_back(clonarRegistro(registro));
@@ -230,6 +243,7 @@
 					it++;
 				}
 				this->registros.clear();
+				this->RLF = false;
 
 				actualizarEspacioLibre (calcularEspacioLibre ());
 				desactivarRegistroDeControl();
@@ -240,7 +254,7 @@
 			return (this->registros.size());
 		}
 
-		size_t Bloque::obtenerLongitud (){
+		int Bloque::getLongitud (){
 			return this->longitud;
 		}
 
@@ -261,10 +275,10 @@
 			char* ptr;
 			int cantidadRegistros = obtenerCantidadRegistros();
 //			int espaciolibre = obtenerEspacioLibre();
-			stream = new char[obtenerLongitud()];
+			stream = new char[getLongitud()];
 
 			//se carga todo el buffer con basura
-			memset (stream, BASURA, this->obtenerLongitud());
+			memset (stream, BASURA, this->getLongitud());
 
 			//se cargan los campos de control
 			ptr = stream;
@@ -318,13 +332,13 @@
 					delete []streamRegistro;
 					}
 			}
-			buffer->setStream(stream, obtenerLongitud());
+			buffer->setStream(stream, getLongitud());
 			delete []stream;
 			return 0;
 
 		}
 
-		int Bloque::hidratar (Buffer* buffer, int posicion){
+	int Bloque::hidratar (Buffer* buffer, int posicion){
 			int longitud;
 			char* stream = buffer->getStream(longitud);
 

@@ -7,13 +7,18 @@
 
 #ifndef REGISTRO__H__
 #define REGISTRO__H__
+
+#include <string>
 #include "Serializable.h"
 #include "Buffer.h"
+
+using namespace std;
 
 class Registro : public Serializable{
 protected:
 	char* dato;
 	int longitudDato;
+	string tipoRegistro;
 
 public:
 	Registro();
@@ -23,6 +28,8 @@ public:
 	virtual ~Registro();
 
 	char* getDato(int &longitudDato);
+
+	string getTipoRegistro ();
 
 	void setDato(char* dato, int longitudDato);
 
@@ -38,6 +45,9 @@ public:
 
 protected:
 	char* clonarDato (char* dato, int longitudDato);
+
+	virtual void setTipoRegistro ();
+
 };
 
 #endif /* REGISTRO__H__ */

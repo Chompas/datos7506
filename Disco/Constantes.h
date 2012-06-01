@@ -4,9 +4,12 @@
  *  Created on: 05/10/2010
  *      Author: nacho
  */
-
 #ifndef CONSTANTES__H__
 #define CONSTANTES__H__
+
+#include <string>
+
+using namespace std;
 
 /*
  * Archivo de constantes para el persistor
@@ -28,5 +31,8 @@ const int LCCRLV = 4;										//Longitud en bytes del campo de control de cada 
 const char S = 'S';											//Caracter que indica presencia de registro cero en stream.
 const char N = 'N';											//Caracter que indica ausencia de registro cero en stream.
 const int LR = 50;											//Tamanio de registro de longitud fija por defecto
+
+const string RLFija = "RLF";								//Valor que identifica a un registro de longitud fija
+const string RLVariable = "RLV";							//Valor que identifica a un registro de longitud variable
 
 #endif /* CONSTANTES__H__ */

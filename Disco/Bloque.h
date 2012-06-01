@@ -86,6 +86,13 @@ private:
 	Registro* clonarRegistro (Registro* registro);
 
 	/*
+	 * setea el tipo de registros que va a recibir el bloque
+	 * pre: registro debe ser una referancia a un registro distinto de NULL.
+	 * pos: Establece si los registros en el bloque seran de long fija o variable
+	 */
+	void setRLF (Registro *registro);
+
+	/*
 	*****************************************************************************************************
 	* funciones publicas de la clase.
 	*****************************************************************************************************
@@ -211,7 +218,7 @@ private:
 		 * pre: -
 		 * pos: Devuelve la longitud del bloque.
 		 */
-		size_t obtenerLongitud ();
+		int getLongitud ();
 
 		/*
 		 * Obtiene la posicion en el stream del bloque del primer byte libre del bloque.
@@ -252,7 +259,7 @@ private:
 		 * [int: espacio libre][char: 'S' existe registro de control | 'N' no existe registro de control]
 		 * [int: tamanio Registro 1][Registro: registro 1][int: tamanio registro 2][Registro: registro 2]...
 		 */
-		virtual int hidratar (Buffer* buffer, int posicion);
+		int hidratar (Buffer* buffer, int posicion);
 
 		/*
 		 * Indica si un registro entra en el espacio libre del bloque.
@@ -261,7 +268,7 @@ private:
 		 *
 		 * registro: puntero a Registro.
 		 */
-		virtual bool entra (Registro *registro);
+		bool entra (Registro *registro);
 
 
 

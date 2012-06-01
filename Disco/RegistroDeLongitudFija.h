@@ -35,6 +35,8 @@ public:
 private:
 	void setLongitud(int longitud);
 
+	void setTipoRegistro ();
+
 	bool longitudDatoValido(int longitudDato);
 };
 

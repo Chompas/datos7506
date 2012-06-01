@@ -452,6 +452,49 @@ int PruebaArbolDisco()
 	return 0;
 }
 
+void pruebaBloque (){
+	Bloque *bloque1 = new Bloque(512);
+
+	Registro* registro1 = new RegistroDeLongitudVariable();
+	int longitudDato = 9; //entero + cadena de 5 bytes
+	char* stream = new char[longitudDato];
+	char* ptr = stream;
+	int edad = 28;
+
+	cout << "Inicio de prueba de RegistroDeLongitudVariable" << endl;
+	memcpy(ptr, &edad, sizeof(int));
+	ptr += sizeof(int);
+	memcpy(ptr, "Nacho", 5);
+
+	registro1->setDato(stream, longitudDato);
+
+	int longitudDato2;
+	char* dato = registro1->getDato(longitudDato2);
+	ptr = dato;
+
+	int edad2;
+	char* nombre = new char[6];
+	memcpy(&edad2, ptr, sizeof(int));
+	ptr += sizeof(int);
+	memcpy(nombre, ptr, 5);
+	nombre[5] = '\0';
+
+	cout << "cantidad de registros de bloque1: " << bloque1->obtenerCantidadRegistros() << endl;
+	cout << "espacio libre de bloque1: " << bloque1->obtenerEspacioLibre() << endl;
+
+	bloque1->insertarRegistro(registro1);
+	cout << "se inserto registro" << endl;
+
+	cout << "cantidad de registros de bloque1: " << bloque1->obtenerCantidadRegistros() << endl;
+	cout << "espacio libre de bloque1: " << bloque1->obtenerEspacioLibre() << endl;
+
+
+	delete registro1;
+	delete []stream;
+	delete []nombre;
+	delete bloque1;
+	delete []dato;
+}
 
 int main(int argc, char* argv[])
 {
@@ -479,7 +522,7 @@ int main(int argc, char* argv[])
 		cerr << "Error no especificado" <<endl;
 	}
 */
-	cout << time(NULL) << endl;
+/*	cout << time(NULL) << endl;
 
 	prueba_RegistroDeLongitudVariable();
 
@@ -488,5 +531,7 @@ int main(int argc, char* argv[])
 	prueba_lecturaDeArchivoIndice();
 
 	altaPorTeclado();
+*/
 
+	pruebaBloque();
 }

@@ -5,15 +5,18 @@
  *      Author: Nacho
  */
 
-#include "RegistroDeLongitudVariable.h"
 #include <cstring>
+#include "RegistroDeLongitudVariable.h"
+#include "Constantes.h"
 
 	RegistroDeLongitudVariable::RegistroDeLongitudVariable(){
 		Registro();
+		this->setTipoRegistro();
 	}
 
 	RegistroDeLongitudVariable::RegistroDeLongitudVariable(char* dato, int longitudDato){
 		Registro(dato, longitudDato);
+		this->setTipoRegistro();
 	}
 
 	RegistroDeLongitudVariable::~RegistroDeLongitudVariable(){
@@ -25,4 +28,8 @@
 		//del compo de control que es un entero que almacena la longitud del
 		//dato, propiamentedicho.
 		return (sizeof(int) + this->longitudDato);
+	}
+
+	void RegistroDeLongitudVariable::setTipoRegistro(){
+		this->tipoRegistro = RLVariable;
 	}

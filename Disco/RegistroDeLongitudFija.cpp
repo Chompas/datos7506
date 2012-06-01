@@ -11,10 +11,12 @@
 
 	RegistroDeLongitudFija::RegistroDeLongitudFija(int longitud){
 		this->setLongitud(longitud);
+		this->setTipoRegistro();
 	}
 
 	RegistroDeLongitudFija::RegistroDeLongitudFija(char* dato, int longitudDato, int longitud){
 		this->setLongitud(longitud);
+		this->setTipoRegistro();
 		if (this->longitudDatoValido(longitudDato)) Registro(dato, longitudDato);
 	}
 
@@ -42,6 +44,10 @@
 		this->longitud = 0; //valor invalido
 		if (longitud >= LONGITUD_MINIMA_REGISTRO_DE_LONGITUD_FIJA)
 			this->longitud = longitud;
+	}
+
+	void RegistroDeLongitudFija::setTipoRegistro(){
+		this->tipoRegistro = RLFija;
 	}
 
 	bool RegistroDeLongitudFija::longitudDatoValido(int longitudDato){
