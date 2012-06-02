@@ -28,10 +28,10 @@ public :
 class BKDClaveMultiple : public Serializable
 {
 
-protected:
+public:
 	int m_dimension;
 	std::vector<BKDClave*> m_subclaves;
-public:
+
 	BKDClaveMultiple(const BKDClaveMultiple& clave);
 	virtual ~BKDClaveMultiple();
 

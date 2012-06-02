@@ -39,10 +39,10 @@ IndiceDatos* IndiceDatos::Abrir(std::string filePath, int tamanioBloque)
 	return ret;
 }
 
-Incidente IndiceDatos::BuscarIncidente(int formacion)
+Incidente IndiceDatos::BuscarIncidente(Incidente incidente)
 {
 	BKDRegistro* inPtr;
-	ClaveInt clave = ClaveInt(formacion);
+	ClaveInt clave = ClaveInt(incidente);
 
 	if (!this->m_arbolBKD->BuscarRegistro(clave, &inPtr))
 		return Incidente();
