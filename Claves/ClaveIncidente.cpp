@@ -77,16 +77,7 @@ int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
 
 	}
 
-<<<<<<< HEAD
-	if (areEqual == true) {
-		return 0;
-	} else {
-		return 1;
-	}
-
-=======
 	return resultado;
->>>>>>> fb2cc9cc48a559c58c2fc8e7b4a0c71788907bf6
 }
 
 int ClaveIncidente::serializar (Buffer* buffer, int posicion){
@@ -109,5 +100,5 @@ int ClaveIncidente::serializar (Buffer* buffer, int posicion){
 }
 
 int ClaveIncidente::hidratar (Buffer* buffer, int posicion){
-
+	return 0;
 }
