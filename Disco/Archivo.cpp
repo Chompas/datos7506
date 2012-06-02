@@ -6,15 +6,59 @@
  */
 
 #include <fstream>
+#include <stdio.h>
+#include <string.h>
 #include "Archivo.h"
 #include "Buffer.h"
 
+void Archivo::obtenerDatosDeControl(){
+	char* buff = new char[4];
+	int cantidadBloquesLibres;
 
-void Archivo::obtenerDatosDeControl(){}
+	this->archivoControl.seekg (0, ios::beg);
+	this->archivoControl.read (buff, 4);
+	memcpy (buff, &this->longitudBloque, sizeof(int));
+	this->archivoControl.read (buff, 4);
+	memcpy (buff, &this->cantidadBloquesTotal, sizeof(int));
+	this->archivoControl.read (buff, 4);
+	memcpy (buff, &cantidadBloquesLibres, sizeof(int));
+
+	for (int contador = 1; contador <= cantidadBloquesLibres; contador++){
+		int idBloqueLibre;
+		this->archivoControl.read (buff, 4);
+		memcpy (buff, &idBloqueLibre, sizeof(int));
+		this->bloquesLibres.push_back(idBloqueLibre);
+	}
+
+	delete []buff;
+}
 
 void Archivo::persistirDatosDeControl(){
+	int longitudStream = LCCAC + this->cantidadBloquesLibres() * 4;
+	char* stream = new char[longitudStream];
+	char* ptr = stream;
 
-//	char* stream = new char
+	memcpy(ptr, &this->longitudBloque, sizeof(int));
+	ptr += sizeof(int);
+
+	memcpy(ptr, &this->cantidadBloquesTotal, sizeof(int));
+	ptr += sizeof(int);
+
+	int cBL = cantidadBloquesLibres();
+	memcpy(ptr, &cBL, sizeof(int));
+	ptr += sizeof(int);
+
+	std::vector<int>::iterator it = this->bloquesLibres.begin();
+	for (int contador = 0; contador < cantidadBloquesLibres(); contador++){
+		memcpy(ptr, &(*it), sizeof(int));
+		ptr += sizeof(int);
+		it++;
+	}
+
+	this->archivoControl.seekp (0, ios::beg);
+	this->archivoControl.write (stream, longitudStream);
+
+	delete []stream;
 }
 
 Archivo::Archivo(char* nombreArchivo, int longitudBloque) {
@@ -23,11 +67,13 @@ Archivo::Archivo(char* nombreArchivo, int longitudBloque) {
 	this->archivoControl.open ("control.dat", fstream::binary | fstream::in | fstream::out);
 	this->longitudBloque = longitudBloque;
 	this->cantidadBloquesTotal = 0;
+	obtenerDatosDeControl();
 }
 
 Archivo::~Archivo() {
 	this->archivo.close();
 	this->archivoControl.close();
+	persistirDatosDeControl();
 }
 
 Bloque* Archivo::obtenerNuevoBloque (int &idBloque){
