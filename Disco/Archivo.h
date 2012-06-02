@@ -29,7 +29,7 @@ public:
 
 	virtual ~Archivo();
 
-	Bloque* crearNuevoBloque ();
+	Bloque* crearNuevoBloque (int &idBloque);
 
 	int obtenerBloque (Bloque* bloque, int idBloque);
 
@@ -43,7 +43,7 @@ public:
 
 	int cabtidadBloquesOcupados ();
 
-	int obtenerBloqueLibre ();
+	int obtenerBloqueLibre (Bloque *bloque, int &idBloque);
 
 };
 
