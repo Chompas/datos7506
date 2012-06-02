@@ -15,6 +15,7 @@ using namespace std;
  * Archivo de constantes para el persistor
  */
 
+const int LBD = 512;										//Longitud de Bloque por defecto
 const char BASURA = '/';									//Caracter que representa basura en un stream;
 const int LONGITUD_MINIMA_REGISTRO_DE_LONGITUD_FIJA = 5; 	//Este numero se determina porque el registro va a tener
 														 	//minimamente un dato de longitud=1 y un campo de control
@@ -34,5 +35,7 @@ const int LR = 50;											//Tamanio de registro de longitud fija por defecto
 
 const string RLFija = "RLF";								//Valor que identifica a un registro de longitud fija
 const string RLVariable = "RLV";							//Valor que identifica a un registro de longitud variable
+
+const string NOMBRE_ARCHIVO_CONTROL = "control.dat";			//nombre del archivo de control que utiliza la clase Archivo
 
 #endif /* CONSTANTES__H__ */
