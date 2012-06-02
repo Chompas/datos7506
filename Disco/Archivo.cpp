@@ -21,8 +21,11 @@ Archivo::~Archivo() {
 	this->archivoControl.close();
 }
 
-Bloque* Archivo::crearNuevoBloque (){
+Bloque* Archivo::crearNuevoBloque (int &idBloque){
 	Bloque* bloque = new Bloque (this->longitudBloque);
+
+	this->archivo.seekg (0, ios::end);
+	idBloque = (this->archivo.tellg() / this->longitudBloque) - 1;
 
 	return bloque;
 }
@@ -92,4 +95,16 @@ int Archivo::cabtidadBloquesOcupados (){
 	return  (this->cantidadBloquesTotal - cantidadBloquesLibres());
 }
 
-int Archivo::obtenerBloqueLibre (){return 0;}
+int Archivo::obtenerBloqueLibre (Bloque *bloque, int &idBloque){
+	if (cantidadBloquesLibres() > 0){
+		std::vector<int>::iterator it = this->bloquesLibres.begin();
+		//entrega el primer bloque libre de la lista
+		idBloque = *it;
+		obtenerBloque (bloque, idBloque);
+		//una vez entregado lo elimina de la lista
+		this->bloquesLibres.erase(it);
+		return 0;
+	}else
+		return 1;
+
+}
