@@ -21,15 +21,15 @@ ClaveIncidente::ClaveIncidente(Incidente& incidente)
 {
 
 	//Inserto en orden las claves en el vector
-	ClaveInt claveLinea = ClaveInt(incidente.linea);
+	ClaveInt claveLinea =  new ClaveInt(incidente.linea);
 	this->m_subclaves.push_back(&claveLinea);
-	ClaveInt claveHorario = ClaveInt(incidente.horario);
+	ClaveInt claveHorario = new ClaveInt(incidente.horario);
 	this->m_subclaves.push_back(&claveHorario);
-	ClaveInt claveFalla = ClaveInt(incidente.falla);
+	ClaveInt claveFalla = new ClaveInt(incidente.falla);
 	this->m_subclaves.push_back(&claveFalla);
-	ClaveInt claveAccidente = ClaveInt(incidente.accidente);
+	ClaveInt claveAccidente = new ClaveInt(incidente.accidente);
 	this->m_subclaves.push_back(&claveAccidente);
-	ClaveInt claveFormacion = ClaveInt(incidente.formacion);
+	ClaveInt claveFormacion = new ClaveInt(incidente.formacion);
 	this->m_subclaves.push_back(&claveFormacion);
 
 
