@@ -61,22 +61,20 @@ int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
 
 	bool areEqual = true;
 	int compare;
+	int resultado = 0;
 
 	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it)
 	{
 		compare = (*it)->Comparar(**it2);
-		if (compare != 0) {
+		if (compare != 0 && areEqual == true) {
 			areEqual = false;
+			resultado = compare;
 		}
 
 		it2++;
 
 	}
 
-	if (areEqual == true) {
-		return 0;
-	} else {
-		return 1;
-	}
+	return resultado;
 }
 
