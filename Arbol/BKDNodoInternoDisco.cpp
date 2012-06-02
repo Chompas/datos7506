@@ -8,28 +8,15 @@
 #include "BKDNodoInternoDisco.h"
 
 BKDNodoInternoDisco::BKDNodoInternoDisco(BKDManager* manager,int nroNodo, int capacidad, int nivel)
-				: BKDNodoInterno(manager, nroNodo, capacidad, nivel)
+				: BKDNodoInterno(manager, nroNodo, capacidad, nivel) { }
+
+bool BKDNodoInternoDisco::EscribirEnBloque(Bloque* bloque)
 {
+	return false;
 }
 
-BKDNodoInternoDisco::~BKDNodoInternoDisco()
+bool BKDNodoInternoDisco::LeerDeBloque(Bloque* bloque)
 {
-}
-
-
-/*********** Implementacion <Serializable> *************/
-int BKDNodoInternoDisco::getLongitud()
-{
-	return 0;
-}
-
-int BKDNodoInternoDisco::serializar (Buffer* buffer, int posicion)
-{
-	return 0;
-}
-
-int BKDNodoInternoDisco::hidratar (Buffer* buffer, int posicion)
-{
-	return 0;
+	return false;
 }
 

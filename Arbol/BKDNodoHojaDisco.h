@@ -9,18 +9,15 @@
 #define BKDNODOHOJADISCO_H_
 
 #include "BKDNodoHoja.h"
-#include "../Disco/Serializable.h"
+#include "../Disco/Bloque.h"
 
-class BKDNodoHojaDisco : public BKDNodoHoja, public Serializable
+class BKDNodoHojaDisco : public BKDNodoHoja
 {
 public:
 	BKDNodoHojaDisco(BKDManager* manager,int nroNodo, int capacidad, int nivel);
-	virtual ~BKDNodoHojaDisco();
 
-	//Implementacion de <Serializable>
-	virtual int getLongitud();
-	virtual int serializar (Buffer* buffer, int posicion);
-	virtual int hidratar (Buffer* buffer, int posicion);
+	virtual bool EscribirEnBloque(Bloque* bloque);
+	virtual bool LeerDeBloque(Bloque* bloque);
 
 };
 

@@ -5,17 +5,45 @@
  *      Author: vdiego
  */
 
+#include <iostream>
 #include "BKDManagerDisco.h"
 #include "BKDNodoHojaDisco.h"
 #include "BKDNodoInternoDisco.h"
-#include <iostream>
+#include "../Disco/Registro.h"
+#include "../Disco/Bloque.h"
+
 
 using namespace std;
 
-int MIN_TAMANIO_BLOQUE = 20;
+typedef struct
+{
+	int Nivel;
+
+} RegControlNodo;
 
 
 //************ METODOS PRIVADOS ******************//
+
+
+RegControlNodo LeerRegistroControlNodo(Registro* registro)
+{
+	RegControlNodo rc;
+
+	if (registro != NULL)
+	{
+		//**TODO: Cargar El Nivel
+
+	}
+
+	return rc;
+}
+
+Registro* GuardarRegistroControlNodo(RegControlNodo regControl)
+{
+	//** TODO:
+
+	return NULL;
+}
 
 
 BKDNodo* BKDManagerDisco::GetCopiaNodo(BKDNodo* nodo)
@@ -40,57 +68,50 @@ void BKDManagerDisco::RefrescarRaiz()
 	this->m_raiz = this->GetNodo(this->m_raiz_id);
 }
 
+int NroNodoToNumBloque(int nroNodo)
+{
+	return nroNodo - 1;
+}
+
+int NroBloqueToNroNodo(int nroBloque)
+{
+	return nroBloque + 1;
+}
+
 //***********************************************//
 
-
-BKDManagerDisco::BKDManagerDisco(string filePath, int tamanioBytesBloque)
+BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesBloque)
 {
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
 
-	this->m_capacidad_hoja = tamanioBytesBloque; //** TODO: calcular capacidad segun tamanio del bloque
-	this->m_capacidad_interno = tamanioBytesBloque; //** TODO: calcular capacidad segun tamanio del bloque
-
-	this->m_file_path = filePath;
-	this->m_tamBloque = tamanioBytesBloque;
-
-
+	this->m_capacidad_hoja = tamanioBytesBloque;
+	this->m_capacidad_interno = tamanioBytesBloque;
 
 	if (filePath.empty())
-		cerr << "Debe especificarse un archivo para el indice" << endl;
+			cerr << "Debe especificarse un archivo para el indice" << endl;
 
-	if (tamanioBytesBloque < MIN_TAMANIO_BLOQUE)
-		cerr << "Tamanio de Bloque insuficiente" << endl;
+	if (tamanioBytesBloque < ArchivoBloques::GetTamanioMinimoBloque())
+			cerr << "Tamanio de Bloque insuficiente" << endl;
 
-	this->m_file.open(filePath.c_str(), fstream::binary | fstream::in | fstream::out);
+	this->m_arch = new ArchivoBloques(filePath, tamanioBytesBloque);
 
 	//Cargo la raiz
 	RefrescarRaiz();
 }
 
-BKDManagerDisco::BKDManagerDisco(std::string filePath)
+BKDManagerDisco::BKDManagerDisco(const std::string& filePath)
 {
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
 
-	this->m_file_path = filePath;
-	this->m_tamBloque = 0; //TODO: Leer de campo de control en el archivo
-
-	this->m_capacidad_hoja = 0; //** TODO: calcular capacidad segun tamanio del bloque
-	this->m_capacidad_interno = 0; //** TODO: calcular capacidad segun tamanio del bloque
-
-
 	if (filePath.empty())
-		cerr << "Debe especificarse un archivo para el indice" << endl;
+			cerr << "Debe especificarse un archivo para el indice" << endl;
 
-	this->m_file.open(filePath.c_str(), fstream::binary | fstream::in | fstream::out);
+	this->m_arch = new ArchivoBloques(filePath);
 
-
-	//**LEER CAMPOS CONTROL
-
-
-	if (this->m_tamBloque < MIN_TAMANIO_BLOQUE)
-		cerr << "Tamanio de Bloque insuficiente" << endl;
+	this->m_capacidad_hoja = this->m_arch->GetTamanioDatosBloque();
+	this->m_capacidad_interno = this->m_capacidad_hoja;
 
 	//Cargo la raiz
 	RefrescarRaiz();
@@ -101,11 +122,9 @@ BKDManagerDisco::~BKDManagerDisco()
 	if (this->m_raiz != NULL)
 		delete this->m_raiz;
 
-	if (this->m_file != NULL && this->m_file.is_open())
-	{
-		this->m_file.flush();
-		this->m_file.close();
-	}
+	if (this->m_arch != NULL)
+		delete this->m_arch;
+
 }
 
 BKDNodo* BKDManagerDisco::GetNodoRaiz()
@@ -125,13 +144,53 @@ BKDNodo* BKDManagerDisco::GetNodoPrimeraHoja()
 BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 {
 	//voy a disco a obtener el nodo indicado.
+	int nroBloque = NroNodoToNumBloque(nroNodo);
+	Bloque* bl = m_arch->GetBloque(nroBloque);
 
-	//Buscar bloque por nro de nodo
-	//Cargar bloque en memoria
-	//generar buffer e hidratar nodo desde el buffer
-	//devolver nodo
+	if (bl == NULL)
+	{
+		cerr << "Error: No se hallo el nodo " << nroNodo << endl;
+		return NULL;
+	}
 
-	return NULL; //**TODO
+	Registro* regCtrl = bl->obtenerRegistroDeControl();
+
+	if (regCtrl == NULL)
+	{
+		cerr << "Error: Información de control corrupta en nodo " << nroNodo << endl;
+		return NULL;
+	}
+
+	RegControlNodo rcn = LeerRegistroControlNodo(regCtrl);
+	delete regCtrl;
+
+	BKDNodo* nodo = NULL;
+
+	if (rcn.Nivel == 0)
+	{
+		BKDNodoHojaDisco* nodoHoja = new BKDNodoHojaDisco(this, nroNodo, this->m_capacidad_hoja, rcn.Nivel);
+
+		if (!nodoHoja->LeerDeBloque(bl))
+			cerr << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque << endl;
+		else
+			nodo = nodoHoja;
+	}
+	else if (rcn.Nivel > 0)
+	{
+		BKDNodoInternoDisco* nodoInterno = new BKDNodoInternoDisco(this, nroNodo, this->m_capacidad_interno, rcn.Nivel);
+
+		if (!nodoInterno->LeerDeBloque(bl))
+			cerr << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque << endl;
+		else
+			nodo = nodoInterno;
+	}
+
+	delete bl;
+
+	if (nodo == NULL)
+		cerr << "Error: Información de nivel corrupta en nodo " << nroNodo << endl;
+
+	return nodo;
 }
 
 BKDNodo* BKDManagerDisco::CrearNodoOffline(int nivel)
@@ -139,38 +198,129 @@ BKDNodo* BKDManagerDisco::CrearNodoOffline(int nivel)
 	//Nodo hoja o intermedio?
 	if (nivel == 0)
 		return new BKDNodoHojaDisco(this, -1, this->m_capacidad_hoja, nivel);
-	else
+	else if (nivel > 0)
 		return new BKDNodoInternoDisco(this, -1, this->m_capacidad_interno, nivel);
-
-}
-
-BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
-{
-	//** TODO
-
-	//Pedir nodo vacio
-	//crear objeto nodo hoja/interno segun nivel, y asignarle el valor correspondiente de nro nodo
-	//guardar los cambios hechos al archivo y devolver el nodo
-
+	else
+		cerr << "Error al crear nodo offline: nivel inválido" << endl;
 
 	return NULL;
 }
 
+BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
+{
+	if (nivel < 0)
+	{
+		cerr << "Error al intentar agregar un nodo: el argumento 'nivel' es inválido." << endl;
+		return NULL;
+	}
+
+	int nroBloque = -1;
+	Bloque* bl = m_arch->AgregarBloque(nroBloque);
+	BKDNodo* nodo = NULL;
+
+	if (bl == NULL)
+	{
+		cerr << "Error al intentar agregar un nodo al archivo." << endl;
+		return NULL;
+	}
+	else if (nroBloque < 0)
+		cerr << "Error al intentar agregar un nodo al archivo, identificador invalido." << endl;
+
+	int nroNodo = NroBloqueToNroNodo(nroBloque);
+	RegControlNodo rcn;
+	rcn.Nivel = nivel;
+
+	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
+
+	if (!bl->insertarRegistroDeControl(regCtrl))
+		cerr << "Error al intentar insertar registro de control de nodo." << endl;
+
+	delete regCtrl;
+
+	if (nivel == 0)
+	{
+		BKDNodoHojaDisco* nodoHoja = new BKDNodoHojaDisco(this, nroNodo, this->m_capacidad_hoja, nivel);
+
+		if (nodoHoja->EscribirEnBloque(bl))
+			nodo = nodoHoja;
+		else
+			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo << endl;
+	}
+	else if (nivel > 0)
+	{
+		BKDNodoInternoDisco* nodoInterno = new BKDNodoInternoDisco(this, nroNodo, this->m_capacidad_interno, nivel);
+
+		if (nodoInterno->EscribirEnBloque(bl))
+			nodo = nodoInterno;
+		else
+			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo << endl;
+	}
+
+	delete bl;
+	return nodo;
+}
+
 bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 {
-	//** TODO
+	bool res = false;
 
-	//Traer a memoria el bloque de archivo correspondiente al nodo (x nro nodo)
-	//Generar buffer sobre el bloque y serializar el nodo sobre el buffer y bloque
-	//guardar a disco el bloque y actualizar los campos de control
+	if (nodo == NULL)
+	{
+		cerr << "Error al intentar guardar nodo: el argumento es NULL." << endl;
+		return false;
+	}
 
+	//voy a disco a obtener el bloque indicado.
+	int nroBloque = NroNodoToNumBloque(nodo->GetNumeroNodo());
 
+	if (nroBloque < 0)
+			cerr << "Error al intentar guardar nodo: identificador invalido." << endl;
+
+	Bloque* bl = m_arch->GetBloque(nroBloque);
+
+	if (bl == NULL)
+	{
+		cerr << "Error: No se hallo el bloque " << nroBloque << endl;
+		return false;
+	}
+
+	RegControlNodo rcn;
+	rcn.Nivel = nodo->GetNivel();
+	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
+
+	if (!bl->actualizarRegistroDeControl(regCtrl))
+	{
+		cerr << "Error al intentar actualizar registro de control en bloque " << nroBloque << endl;
+		res = false;
+	}
+
+	delete regCtrl;
+
+	if (nodo->GetNivel() == 0)
+	{
+		BKDNodoHojaDisco* nodoHoja = (BKDNodoHojaDisco*)nodo;
+
+		if (nodoHoja->EscribirEnBloque(bl))
+			res = true;
+		else
+			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo() << endl;
+	}
+	else if (nodo->GetNivel() > 0)
+	{
+		BKDNodoInternoDisco* nodoInterno = (BKDNodoInternoDisco*)nodo;
+
+		if (nodoInterno->EscribirEnBloque(bl))
+			res = true;
+		else
+			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo() << endl;
+	}
+
+	delete bl;
 
 	if (nodo->GetNumeroNodo() == this->m_raiz_id)
 			RefrescarRaiz();
 
-
-	return false;
+	return res;
 }
 
 bool BKDManagerDisco::BorrarNodo(int nroNodo)

@@ -71,8 +71,18 @@ bool BKDNodoInterno::HayUnderflow()
 	return (this->m_claves.size() < (this->m_capacidad / 2));
 }
 
+int BKDNodoInterno::CantidadAMover()
+{
+	return ((this->m_capacidad / 2) + 1); //+ 1 xq copio el hijo y la clave a promover
+}
+
 bool BKDNodoInterno::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 {
+	//** PARA CLAVE MULTIPLE:
+	// BKDClave* subclave = clave->GetSubclave(profundidad % clave->GetDimension())
+	//while ... (*ci)->Comparar(subclave) != 1
+	//************************
+
 	//Recorro en orden las claves hasta encontrar la primera mayor o igual.
 	//Si llegue al final, continuo por el ultimo hijo.
 
@@ -274,7 +284,7 @@ BKDNodo* BKDNodoInterno::ResolverOverflow(BKDClave** clavePromovida)
 
 	if (ret != NULL)
 	{
-		int aCopiar = (this->m_capacidad / 2) + 1; //+ 1 xq copio el hijo y la clave a promover
+		int aCopiar = this->CantidadAMover();
 		ClavesIterator ci = this->m_claves.end();
 		HijosIterator hi = this->m_hijos.end();
 
