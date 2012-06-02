@@ -9,18 +9,15 @@
 #define BKDNODOINTERNODISCO_H_
 
 #include "BKDNodoInterno.h"
-#include "../Disco/Serializable.h"
+#include "../Disco/Bloque.h"
 
-class BKDNodoInternoDisco : public BKDNodoInterno, public Serializable
+class BKDNodoInternoDisco : public BKDNodoInterno
 {
 public:
 	BKDNodoInternoDisco(BKDManager* manager,int nroNodo, int capacidad, int nivel);
-	virtual ~BKDNodoInternoDisco();
 
-	//Implementacion de <Serializable>
-	virtual int getLongitud();
-	virtual int serializar (Buffer* buffer, int posicion);
-	virtual int hidratar (Buffer* buffer, int posicion);
+	virtual bool EscribirEnBloque(Bloque* bloque);
+	virtual bool LeerDeBloque(Bloque* bloque);
 };
 
 #endif /* BKDNODOINTERNODISCO_H_ */

@@ -46,6 +46,7 @@ public:
 	virtual BKDClave* GetSubclave(int dimension) = 0;
 	virtual int GetDimension() = 0;
 
+
 };
 
 

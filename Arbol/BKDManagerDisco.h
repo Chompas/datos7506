@@ -9,7 +9,7 @@
 #define BKDMANAGERDISCO_H_
 
 #include "BKDManager.h"
-#include <fstream>
+#include "../Disco/ArchivoBloques.h"
 
 //implementacion para manejo de almacenamiento de nodos en disco
 class BKDManagerDisco : public BKDManager
@@ -19,15 +19,12 @@ private:
 	BKDNodo* GetCopiaNodo(BKDNodo* nodo);
 
 protected:
-	std::string m_file_path;
-	std::fstream m_file;
-	int m_tamBloque;
-
+	ArchivoBloques* m_arch;
 	BKDNodo* m_raiz;
 
 public:
-	BKDManagerDisco(std::string filePath); //constructor solo de lectura de archivos preexistentes
-	BKDManagerDisco(std::string filePath, int tamanioBytesBloque);
+	BKDManagerDisco(const std::string& filePath); //constructor solo de lectura de archivos preexistentes
+	BKDManagerDisco(const std::string& filePath, const int tamanioBytesBloque);
 	virtual ~BKDManagerDisco();
 
 	std::string GetFilePath();

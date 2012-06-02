@@ -73,6 +73,11 @@ bool BKDNodoHoja::HayUnderflow()
 	return (this->m_registros.size() < (this->m_capacidad / 2));
 }
 
+int BKDNodoHoja::CantidadAMover()
+{
+	return (this->m_capacidad / 2);
+}
+
 bool BKDNodoHoja::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 {
 	//recorro en orden de claves, si existe lleno el registro
@@ -216,7 +221,7 @@ BKDNodo* BKDNodoHoja::ResolverOverflow(BKDClave** clavePromovida)
 	{
 		ret->m_siguienteHoja = this->m_siguienteHoja;
 		this->m_siguienteHoja = ret->m_nro_nodo;
-		int aCopiar = this->m_capacidad / 2;
+		int aCopiar = this->CantidadAMover();
 		RegsIterator ri = this->m_registros.end();
 
 		for(int i = 0; i < aCopiar; i++)

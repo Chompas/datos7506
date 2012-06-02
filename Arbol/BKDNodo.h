@@ -35,6 +35,7 @@ public:
 
 	virtual bool HayOverflow() = 0;
 	virtual bool HayUnderflow() = 0;
+	virtual int CantidadAMover() = 0;//Indica la cantidad de registros que se deberían mover del nodo en overflow al nuevo hermano derecho
 
 	virtual bool BuscarReg(const BKDClave& clave, BKDRegistro** registro) = 0;
 	virtual bool BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado) = 0;

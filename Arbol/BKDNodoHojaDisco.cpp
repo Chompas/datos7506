@@ -8,28 +8,15 @@
 #include "BKDNodoHojaDisco.h"
 
 BKDNodoHojaDisco::BKDNodoHojaDisco(BKDManager* manager,int nroNodo, int capacidad, int nivel)
-				: BKDNodoHoja(manager, nroNodo, capacidad, nivel)
+				: BKDNodoHoja(manager, nroNodo, capacidad, nivel) { }
+
+
+bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 {
+	return false;
 }
 
-BKDNodoHojaDisco::~BKDNodoHojaDisco()
+bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 {
+	return false;
 }
-
-
-/*********** Implementacion <Serializable> *************/
-int BKDNodoHojaDisco::getLongitud()
-{
-	return 0;
-}
-
-int BKDNodoHojaDisco::serializar (Buffer* buffer, int posicion)
-{
-	return 0;
-}
-
-int BKDNodoHojaDisco::hidratar (Buffer* buffer, int posicion)
-{
-	return 0;
-}
-
