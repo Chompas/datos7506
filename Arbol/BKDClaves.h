@@ -32,9 +32,6 @@ public:
 	int m_dimension;
 	std::vector<BKDClave*> m_subclaves;
 
-	BKDClaveMultiple(const BKDClaveMultiple& clave);
-	virtual ~BKDClaveMultiple();
-
 	// -1: this < clave
 	//  0: this == clave
 	//  1: this > clave

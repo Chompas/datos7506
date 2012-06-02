@@ -77,7 +77,7 @@ void busquedaPorTeclado() {
 
 		//ACA HAY QUE AGREGAR LA LLAMADA A LA BUSQUEDA DE INCIDENTE Y PASAR unIncidente
 
-		Incidente result(indice->BuscarIncidente(unIncidente->formacion));
+		Incidente result(indice->BuscarIncidente(*unIncidente));
 
 
 

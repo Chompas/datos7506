@@ -11,11 +11,14 @@
 
 using namespace std;
 
-ClaveIncidente::ClaveIncidente(const ClaveIncidente& clave) {
+
+ClaveIncidente::ClaveIncidente(const ClaveIncidente& clave)
+{
 
 }
 
-ClaveIncidente::ClaveIncidente(Incidente incidente) {
+ClaveIncidente::ClaveIncidente(Incidente& incidente)
+{
 
 	//Inserto en orden las claves en el vector
 	ClaveInt claveLinea = ClaveInt(incidente.linea);
@@ -31,6 +34,7 @@ ClaveIncidente::ClaveIncidente(Incidente incidente) {
 
 
 }
+
 
 ClaveIncidente::~ClaveIncidente() {
 	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it)
