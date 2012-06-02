@@ -9,11 +9,20 @@
 #include "Archivo.h"
 #include "Buffer.h"
 
+
+void Archivo::obtenerDatosDeControl(){}
+
+void Archivo::persistirDatosDeControl(){
+
+//	char* stream = new char
+}
+
 Archivo::Archivo(char* nombreArchivo, int longitudBloque) {
 	this->archivo.open (nombreArchivo, fstream::binary | fstream::in | fstream::out);
 	this->nombreArchivo = nombreArchivo;
 	this->archivoControl.open ("control.dat", fstream::binary | fstream::in | fstream::out);
 	this->longitudBloque = longitudBloque;
+	this->cantidadBloquesTotal = 0;
 }
 
 Archivo::~Archivo() {
@@ -21,11 +30,16 @@ Archivo::~Archivo() {
 	this->archivoControl.close();
 }
 
-Bloque* Archivo::crearNuevoBloque (int &idBloque){
+Bloque* Archivo::obtenerNuevoBloque (int &idBloque){
 	Bloque* bloque = new Bloque (this->longitudBloque);
 
 	this->archivo.seekg (0, ios::end);
-	idBloque = (this->archivo.tellg() / this->longitudBloque) - 1;
+	if (this->archivo.tellg() >-1)
+		idBloque = (this->archivo.tellg() / this->longitudBloque);
+	else
+		idBloque = 0;
+
+	this->cantidadBloquesTotal++;
 
 	return bloque;
 }

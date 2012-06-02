@@ -24,12 +24,16 @@ private:
 	int cantidadBloquesTotal;
 	vector<int> bloquesLibres;
 
+	void obtenerDatosDeControl();
+
+	void persistirDatosDeControl();
+
 public:
 	Archivo(char* nombreArchivo, int longitudBloque = LBD);
 
 	virtual ~Archivo();
 
-	Bloque* crearNuevoBloque (int &idBloque);
+	Bloque* obtenerNuevoBloque (int &idBloque);
 
 	int obtenerBloque (Bloque* bloque, int idBloque);
 

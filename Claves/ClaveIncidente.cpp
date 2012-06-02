@@ -8,6 +8,8 @@
 #include "ClaveIncidente.h"
 #include "ClaveInt.h"
 #include <vector>
+#include <stdio.h>
+#include <string.h>
 
 using namespace std;
 
@@ -78,5 +80,28 @@ int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
 	} else {
 		return 1;
 	}
+
 }
 
+int ClaveIncidente::serializar (Buffer* buffer, int posicion){
+	char* stream = new char[20];
+	char* ptr = stream;
+	Buffer* buffClave;
+	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it){
+		(*it)->serializar(buffClave, 0);
+		int longitudStreamClave;
+		memcpy(ptr, buffClave->getStream(longitudStreamClave), sizeof(int));
+		ptr++;
+		it++;
+	}
+
+	buffer->setStream(stream, 20);
+
+	delete stream;
+
+	return 0;
+}
+
+int ClaveIncidente::hidratar (Buffer* buffer, int posicion){
+
+}
