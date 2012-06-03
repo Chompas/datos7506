@@ -271,6 +271,7 @@ private:
 		bool entra (Registro *registro);
 
 
+		bool EsRLF ();
 
 };
 

@@ -6,6 +6,8 @@
  */
 
 #include "ArchivoBloques.h"
+
+#include "Constantes.h"
 #include "../Comun/Utils.h"
 
 using namespace std;
@@ -14,7 +16,9 @@ using namespace std;
 
 int ArchivoBloques::GetTamanioMinimoBloque()
 {
-	return 20;
+	return sizeof(int) + LCCBRLF;
+	//El tamanio minimo indispensable para mantener registros de longitud fija,
+	//mas el tamanio del puntero al siguiente bloque
 }
 
 //*********************************************
@@ -45,6 +49,17 @@ int GetOffsetBloques()
 }
 
 //***************** METODOS PRIVADOS ************************
+
+int ArchivoBloques::GetTamanioTotalBloque()
+{
+	return this->m_tamBloque;
+}
+
+int ArchivoBloques::GetTamanioDatosBloque()
+{
+	//el tamanio del bloque menos los campos de control (puntero a siguiente bloque)
+	return this->m_tamBloque - sizeof(int);
+}
 
 void ArchivoBloques::LeerCamposControl()
 {
@@ -129,6 +144,13 @@ ArchivoBloques::ArchivoBloques(std::string filePath, int tamBloque)
 {
 	Utils::LogDebug(Utils::dbgSS << "Creando Archivo de Bloques...");
 
+	if (tamBloque < GetTamanioMinimoBloque())
+	{
+		Utils::LogError(Utils::errSS << "Error: Tamanio de bloque insuficiente, el tamanio minimo es de " << GetTamanioMinimoBloque() << " Bytes.");
+		return; //? throw ex?
+	}
+
+
 	this->m_filePath = filePath;
 	this->m_tamBloque = tamBloque;
 	this->m_cantBloques = 0;
@@ -177,16 +199,42 @@ ArchivoBloques::~ArchivoBloques()
 	}
 }
 
-
-int ArchivoBloques::GetTamanioTotalBloque()
+bool ArchivoBloques::EstadoOK()
 {
-	return this->m_tamBloque;
+	if (this->m_file == NULL)
+		return false;
+
+	return (this->m_file.is_open() == false || this->m_file.fail() == false);
 }
 
-int ArchivoBloques::GetTamanioDatosBloque()
+int ArchivoBloques::GetCapacidadMaximaParaRegistros(Bloque* bloque)
 {
-	//el tamanio del bloque menos los campos de control (puntero a siguiente bloque)
-	return this->m_tamBloque - sizeof(int);
+	if (bloque == NULL)
+	{
+		Utils::LogError(Utils::errSS << "Error al calcular capacidad maxima para registros: bloque NULL");
+		return -1;
+	}
+
+	//la capacidad maxima para dedicar a registros es la capacidad de datos del bloque menos el tamaño
+	//de la informacion de control del mismo.
+
+	int tamControl = bloque->EsRLF() ? LCCBRLF : LCCBRLV;
+
+	return this->GetTamanioDatosBloque() - tamControl;
+}
+
+int ArchivoBloques::CalcularTamanioFinalRegistro(Registro* registro)
+{
+	if (registro == NULL)
+	{
+		Utils::LogError(Utils::errSS << "Error al calcular Tamanio final de registro: registro NULL");
+		return -1;
+	}
+
+	if (registro->getTipoRegistro() == RLVariable)
+		return registro->getLongitud() + LCCRLV;
+	else
+		return registro->getLongitud();
 }
 
 //nro Bloque de 1 en adelante. Si no se encuentra el nro de bloque, devuelve NULL
@@ -195,25 +243,60 @@ Bloque* ArchivoBloques::GetBloque(int nroBloque)
 	Utils::LogDebug(Utils::dbgSS << "Buscando en disco bloque nro: " << nroBloque);
 
 	int pos = this->GetPosBloque(nroBloque);
-	int tam = this->GetTamanioTotalBloque();
+	int tamBloque = this->GetTamanioDatosBloque();
+
 	this->m_file.seekg(pos, ios::beg);
 
-	char* bf = new char[tam];
-	this->m_file.read(bf, tam);
-
-	if (this->m_file.gcount() != tam)
+	if (this->m_file.fail())
 	{
-		Utils::LogError(Utils::errSS << "Error al intentar leer el bloque " << nroBloque);
+		Utils::LogError(Utils::errSS << "Error: No se encontro el bloque " << nroBloque << " en el archivo.");
 		return NULL;
 	}
 
-	Buffer buff = Buffer(bf, tam);
+	Utils::LogDebug(Utils::dbgSS << "Leyendo puntero de bloque...");
+
+	int notImplemented = -1;
+	this->m_file.read((char*)&notImplemented, sizeof(int));
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar leer puntero de bloque.");
+		return NULL;
+	}
+
+	if (this->m_file.gcount() != sizeof(int))
+	{
+		Utils::LogError(Utils::errSS << "Error: puntero de bloque corrupto");
+		return NULL;
+	}
+
+	char* bf = new char[tamBloque];
+	this->m_file.read(bf, tamBloque);
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar leer bloque de datos.");
+		return NULL;
+	}
+
+	if (this->m_file.gcount() != tamBloque)
+	{
+		Utils::LogError(Utils::errSS << "Error: Bloque de datos corrupto.");
+		return NULL;
+	}
+
+	Buffer buff = Buffer(bf, tamBloque);
 	delete[] bf;
 
-	Bloque* bl = new Bloque(&buff, tam);
+	Bloque* bl = new Bloque(&buff, tamBloque);
 
 	if (bl == NULL)
-		Utils::LogError(Utils::errSS << "Error al intentar obtener bloque " << nroBloque);
+		Utils::LogError(Utils::errSS << "Error al hidratar bloque " << nroBloque);
+	else if (bl->getLongitud() != tamBloque)
+	{
+		Utils::LogError(Utils::errSS << "Error al hidratar bloque " << nroBloque);
+		delete bl;
+	}
 
 	return bl;
 }
@@ -229,11 +312,18 @@ Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 
 	//**TODO: Reusar nodos libres
 
-	bloque = new Bloque(this->m_tamBloque);
+	int tamTotal = this->GetTamanioTotalBloque();
+	int tamBloque = this->GetTamanioDatosBloque();
+	bloque = new Bloque(tamBloque);
+
 	Buffer buff = Buffer();
-	bloque->serializar(&buff, 0);
-	int tamBF = 0;
-	char* bf = buff.getStream(tamBF);
+
+	if (bloque->serializar(&buff, 0) != 0)
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar serializar nuevo bloque");
+		delete bloque;
+		return NULL;
+	}
 
 	this->m_file.seekp(0, ios::end);
 	pos = this->m_file.tellp();
@@ -241,7 +331,28 @@ Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 
 	Utils::LogDebug(Utils::dbgSS << "Nro de bloque del nuevo bloque: " << nroBloque);
 
-	Utils::LogDebug(Utils::dbgSS << "Intentando escribir bloque al archivo... (Tamanio: " << tamBF << ")");
+	Utils::LogDebug(Utils::dbgSS << "Intentando escribir bloque al archivo... (Tamanio: " << tamTotal << ")");
+
+
+	Utils::LogDebug(Utils::dbgSS << "Escribiendo puntero de bloque...");
+
+	int notImplemented = -1;
+
+	this->m_file.write((char*)&notImplemented, sizeof(int));
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar escribir puntero de bloque.");
+		delete bloque;
+		return NULL;
+	}
+
+	//*****************************************************************************
+	// TENGO QUE INCREMENTAR EL PUT POINTER ???
+	//*****************************************************************************
+
+	int tamBF = 0;
+	char* bf = buff.getStream(tamBF);
 	this->m_file.write(bf, tamBF);
 	delete[] bf;
 
@@ -265,7 +376,8 @@ bool ArchivoBloques::ActualizarBloque(int nroBloque, Bloque& bloque)
 	Utils::LogDebug(Utils::dbgSS << "Intentando guardar bloque a disco... (Nro de bloque: " << nroBloque << ")" );
 
 	int pos = this->GetPosBloque(nroBloque);
-	int tam = this->GetTamanioTotalBloque();
+	int tamTotal = this->GetTamanioTotalBloque();
+	int tamBloque = this->GetTamanioDatosBloque();
 
 	Buffer buff = Buffer();
 
@@ -280,17 +392,47 @@ bool ArchivoBloques::ActualizarBloque(int nroBloque, Bloque& bloque)
 	int tamBF = 0;
 	char* bf = buff.getStream(tamBF);
 
-	if (tam != tamBF)
+	if (bf == NULL)
 	{
-		Utils::LogError(Utils::errSS << "Error al intentar actualizar bloque: el tamanio de bloque es incorrecto");
-		if (bf != NULL)
-			delete[] bf;
+		Utils::LogError(Utils::errSS << "Error al intentar actualizar bloque: no se pudo obtener el buffer de datos del bloque");
 		return false;
 	}
 
-	Utils::LogDebug(Utils::dbgSS << "Escribiendo bloque al archivo... (offset: " << pos << ", tamanio: " << tamBF << ")" );
+	if (tamBloque != tamBF)
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar actualizar bloque: el tamanio de bloque es incorrecto");
+		delete[] bf;
+		return false;
+	}
+
+	Utils::LogDebug(Utils::dbgSS << "Escribiendo bloque al archivo... (offset: " << pos << ", tamanio: " << tamTotal << ")" );
 
 	this->m_file.seekp(pos, ios::beg);
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error: No se encontro el bloque " << nroBloque << " en el archivo.");
+		delete[] bf;
+		return NULL;
+	}
+
+	int notImplemented = -1;
+
+	this->m_file.write((char*)&notImplemented, sizeof(int));
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar escribir puntero de bloque.");
+		delete[] bf;
+		return NULL;
+	}
+
+	//*****************************************************************************
+	// TENGO QUE INCREMENTAR EL PUT POINTER ???
+	//*****************************************************************************
+
+
+
 	this->m_file.write(bf, tamBF);
 	delete[] bf;
 

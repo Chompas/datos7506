@@ -20,6 +20,9 @@ protected:
 	int m_cantBloques;
 	int m_primerBloqueLibre;
 
+	int GetTamanioTotalBloque();
+	int GetTamanioDatosBloque();
+
 	void LeerCamposControl();
 	void GuardarCamposControl();
 	int GetCampoControl(int offset);
@@ -37,8 +40,11 @@ public:
 	ArchivoBloques(std::string filePath);
 	virtual ~ArchivoBloques();
 
-	int GetTamanioTotalBloque();
-	int GetTamanioDatosBloque();
+	bool EstadoOK();
+
+	int GetCapacidadMaximaParaRegistros(Bloque* bloque); //Devuelve la capacidad en Bytes maxima de un bloque para dedicar a registros. Si hay registro de control, ocupara parte de este tamaño.
+	int CalcularTamanioFinalRegistro(Registro* registro); //Devuelve cuanto ocupara realmente el registro en disco, incluyendo los campos de control extra que se le agreguen
+
 	Bloque* GetBloque(int nroBloque); //nro Bloque de 1 en adelante. Si no se encuentra el nro de bloque, devuelve NULL
 
 	Bloque* AgregarBloque(int& nroBloque); //Si no se puede agregar el bloque, devuelve NULL

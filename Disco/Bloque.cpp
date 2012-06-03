@@ -50,7 +50,8 @@
 		}
 
 		int libre = this->getLongitud() - espacioOcupado;
-		Utils::LogDebug(Utils::dbgSS << " * ESPACIO LIBRE = " << libre);
+
+		//Utils::LogDebug(Utils::dbgSS << " * ESPACIO LIBRE = " << libre);
 
 		return (this->getLongitud() - espacioOcupado);
 	}
@@ -359,105 +360,125 @@
 			return 0;
 		}
 
-	int Bloque::hidratar (Buffer* buffer, int posicion){
-			int longitud;
-			char* stream = buffer->getStream(longitud);
+	int Bloque::hidratar (Buffer* buffer, int posicion)
+	{
+		int longitud;
+		char* stream = buffer->getStream(longitud);
 
-			if (this->longitud != longitud)
-			{
-				//** cerr << "Error al hidratar bloque: la longitud del bloque no concuerda con la del buffer" << endl;
-				delete[] stream;
-				return -1;
-			}
+		if (this->longitud != longitud)
+		{
+			//** cerr << "Error al hidratar bloque: la longitud del bloque no concuerda con la del buffer" << endl;
+			delete[] stream;
+			return -1;
+		}
 
-			if (stream != NULL)
-			{
-				//carga campos de control
-				char* ptr = stream;
-				int cantidadRegistros;
+		if (stream != NULL)
+		{
+			//carga campos de control
+			char* ptr = stream;
+			int cantidadRegistros;
 //				int espacioLibre;
-				char RLF;
-				int longitudRLF;
-				char registroDeControl;
+			char RLF;
+			int longitudRLF;
+			char registroDeControl;
 
-				//se vacia el bloque para dejarlo limpio.
-				vaciar();
+			//se vacia el bloque para dejarlo limpio.
+			vaciar();
 
-				memcpy(&cantidadRegistros, ptr, sizeof(int));
-				ptr += sizeof(int);
+			memcpy(&cantidadRegistros, ptr, sizeof(int));
+			ptr += sizeof(int);
 
 /*				memcpy(&espacioLibre, ptr, sizeof(int));
-				actualizarEspacioLibre (espacioLibre);
-				ptr += sizeof(int);
+			actualizarEspacioLibre (espacioLibre);
+			ptr += sizeof(int);
 */
-				memcpy(&RLF, ptr, sizeof(char));
-				switch (RLF){
-				case S: this->RLF = true;
-						break;
-				case N: this->RLF = false;
-						break;
-				}
-				ptr += sizeof(char);
+			memcpy(&RLF, ptr, sizeof(char));
+			switch (RLF){
+			case S: this->RLF = true;
+					break;
+			case N: this->RLF = false;
+					break;
+			}
+			ptr += sizeof(char);
 
-				if (this->RLF){
-					memcpy(&longitudRLF, ptr, sizeof(int));
-					ptr += sizeof(int);
-				}
-
-				memcpy(&registroDeControl, ptr, sizeof(char));
-				switch (registroDeControl){
-				case S: activarRegistroDeControl();
-						break;
-				case N: desactivarRegistroDeControl();
-						break;
-				}
-				ptr += sizeof(char);
-
-				//carga los registros
-				for (int indice = 0; indice < cantidadRegistros; indice++)
-				{
-					int longitudRegistro;
-					memcpy(&longitudRegistro, ptr, sizeof(int));
-					ptr += sizeof(int);
-
-					char* streamRegistro = new char[longitudRegistro];
-
-					memcpy (streamRegistro, ptr, longitudRegistro);
-					Buffer* regBuf = new Buffer;
-					regBuf->setStream(streamRegistro, longitudRegistro);
-
-					Registro* auxReg;
-
-					if (this->RLF){
-						auxReg = new RegistroDeLongitudFija(longitudRegistro);
-						auxReg->hidratar(regBuf,0);
-						}
-					else{
-						auxReg = new RegistroDeLongitudVariable();
-						auxReg->hidratar(regBuf, 0);
-						}
-
-					insertarRegistro (auxReg);
-					ptr += longitudRegistro;
-
-					delete regBuf;
-					delete auxReg;
-					delete[] streamRegistro;
-				}
+			if (this->RLF){
+				memcpy(&longitudRLF, ptr, sizeof(int));
+				ptr += sizeof(int);
 			}
 
-			actualizarEspacioLibre (this->calcularEspacioLibre());
-			delete []stream;
-			return 0;
+			memcpy(&registroDeControl, ptr, sizeof(char));
+			switch (registroDeControl){
+			case S: activarRegistroDeControl();
+					break;
+			case N: desactivarRegistroDeControl();
+					break;
+			}
+			ptr += sizeof(char);
+
+			//carga los registros
+			for (int indice = 0; indice < cantidadRegistros; indice++)
+			{
+				int longitudRegistro;
+				memcpy(&longitudRegistro, ptr, sizeof(int));
+				ptr += sizeof(int);
+
+				char* streamRegistro = new char[longitudRegistro];
+
+				memcpy (streamRegistro, ptr, longitudRegistro);
+				Buffer* regBuf = new Buffer;
+				regBuf->setStream(streamRegistro, longitudRegistro);
+
+				Registro* auxReg;
+
+				if (this->RLF){
+					auxReg = new RegistroDeLongitudFija(longitudRegistro);
+					auxReg->hidratar(regBuf,0);
+					}
+				else{
+					auxReg = new RegistroDeLongitudVariable();
+					auxReg->hidratar(regBuf, 0);
+					}
+
+				insertarRegistro (auxReg);
+				ptr += longitudRegistro;
+
+				delete regBuf;
+				delete auxReg;
+				delete[] streamRegistro;
+			}
 		}
 
-		bool Bloque::entra (Registro *registro){
-			int longitudStreamRegistro = registro->getLongitud();
+		actualizarEspacioLibre (this->calcularEspacioLibre());
+		delete []stream;
+		return 0;
+	}
 
-			bool entraTemp = false;
+	bool Bloque::entra(Registro *registro)
+	{
+		int espacioAOcupar = registro->getLongitud();
 
-			if ((obtenerEspacioLibre() - longitudStreamRegistro) >= 0)
-				entraTemp = true;
+		if (this->RLF)
+			espacioAOcupar += LCCRLV;
 
-			return entraTemp;
-		}
+		return ((obtenerEspacioLibre() - espacioAOcupar) >= 0);
+	}
+
+	/*
+	bool Bloque::entra (Registro *registro)
+	{
+		int longitudStreamRegistro = registro->getLongitud();
+
+		bool entraTemp = false;
+
+		if ((obtenerEspacioLibre() - longitudStreamRegistro) >= 0)
+			entraTemp = true;
+
+		return entraTemp;
+	}
+	*/
+
+	bool Bloque::EsRLF ()
+	{
+		return this->RLF;
+	}
+

@@ -12,11 +12,16 @@ BKDNodoInternoDisco::BKDNodoInternoDisco(BKDManager* manager,int nroNodo, int ca
 
 bool BKDNodoInternoDisco::EscribirEnBloque(Bloque* bloque)
 {
+	//*** TODO;
+
+
 	return false;
 }
 
 bool BKDNodoInternoDisco::LeerDeBloque(Bloque* bloque)
 {
+	//*** TODO;
+
 	return false;
 }
 

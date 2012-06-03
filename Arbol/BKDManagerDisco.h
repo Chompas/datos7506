@@ -18,6 +18,7 @@ class BKDManagerDisco : public BKDManager
 private:
 	void RefrescarRaiz();
 	BKDNodo* GetCopiaNodo(BKDNodo* nodo);
+	void ActualizarCapacidadNodos(Bloque* bloque);
 
 protected:
 	ArchivoBloques* m_arch;
@@ -38,6 +39,7 @@ public:
 
 	virtual BKDNodo* CrearNodoOffline(int nivel);
 	virtual BKDRegistro* InstanciarRegistro();
+	virtual int CalcularEspacioAOcupar(Registro* registro);
 
 	virtual BKDNodo* AgregarNodo(int nivel);
 	virtual bool GuardarNodo(BKDNodo* nodo);

@@ -57,10 +57,45 @@ RegControlNodo LeerRegistroControlNodo(Registro* registro)
 Registro* GuardarRegistroControlNodo(RegControlNodo regControl)
 {
 	//guardo el nivel del nodo
-	//Registro* reg = new RegistroDeLongitudFija((char*)(&regControl.Nivel), sizeof(int), sizeof(int));
-	//**RegistroDeLongitudFija* reg = new RegistroDeLongitudFija((char*)(&regControl.Nivel), sizeof(int), sizeof(int));
 	RegistroDeLongitudVariable* reg = new RegistroDeLongitudVariable((char*)(&regControl.Nivel), sizeof(int));
 	return reg;
+}
+
+int GetTamanioRegistroControlNodo()
+{
+	int aux = 0;
+	RegistroDeLongitudVariable* reg = new RegistroDeLongitudVariable((char*)&aux, sizeof(int));
+	aux = reg->getLongitud();
+	delete reg;
+	return aux;
+}
+
+void BKDManagerDisco::ActualizarCapacidadNodos(Bloque* bloque)
+{
+	if (bloque == NULL)
+	{
+		UT::LogError(UT::errSS << "Error al intentar Actualizar Capacidad de Nodos: Bloque NULL");
+		this->m_capacidad_hoja = -1;
+		this->m_capacidad_interno = -1;
+		return;
+	}
+
+	if (this->m_capacidad_hoja == -1 || this->m_capacidad_interno == -1)
+	{
+		int capRegistros = this->m_arch->GetCapacidadMaximaParaRegistros(bloque);
+
+		//a la capacidad para registros le resto lo que ocupa el registro de control
+		RegControlNodo rcn;
+		rcn.Nivel = -1;
+		Registro* aux = GuardarRegistroControlNodo(rcn);
+		capRegistros -= this->m_arch->CalcularTamanioFinalRegistro(aux);
+		delete aux;
+
+		UT::LogDebug(UT::dbgSS << "Actualizando Capacidad de Nodos. Nueva capacidad: " << capRegistros);
+
+		this->m_capacidad_hoja = capRegistros;
+		this->m_capacidad_interno = capRegistros;
+	}
 }
 
 
@@ -115,27 +150,29 @@ BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesB
 
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
-
-	this->m_capacidad_hoja = tamanioBytesBloque;
-	this->m_capacidad_interno = tamanioBytesBloque;
+	this->m_capacidad_hoja = -1;
+	this->m_capacidad_interno = -1;
 
 
 	if (filePath.empty())
 	{
-		UT::LogError(UT::errSS << "Debe especificarse un archivo para el indice");
-		return; //throw ex?
+		UT::LogError(UT::errSS << "Debe especificarse un archivo para el indice.");
+		//return; //throw ex?
+		throw "Nombre de archivo Invalido.";
 	}
 
 	if (tamanioBytesBloque < ArchivoBloques::GetTamanioMinimoBloque())
 	{
 		UT::LogError(UT::errSS << "Tamanio de Bloque insuficiente");
-		return; //throw ex?
+		//return; //throw ex?
+		throw "Tamanio de Bloque insuficiente.";
 	}
 
 	if (instanciadorRegistros == NULL)
 	{
 		UT::LogError(UT::errSS << "Debe especificarse un instanciador de registros");
-		return; //throw ex?
+		//return; //throw ex?
+		throw "No se encontro instanciador de registros.";
 	}
 
 	this->m_instanciador = instanciadorRegistros;
@@ -143,6 +180,14 @@ BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesB
 	//creo el archivo
 	this->m_arch = new ArchivoBloques(filePath, tamanioBytesBloque);
 
+	if (!this->m_arch->EstadoOK())
+	{
+		UT::LogError(UT::errSS << "Ocurrio un error al crear el archivo de datos.");
+		delete this->m_instanciador;
+		delete this->m_arch;
+		//return;
+		throw "Error al crear archivo.";
+	}
 
 	Utils::LogDebug(Utils::dbgSS << "Creando Nodo Raiz...");
 	//creo el nodo raiz (ya lo guarda en disco)
@@ -160,25 +205,35 @@ BKDManagerDisco::BKDManagerDisco(const std::string& filePath, BKDInstanciador* i
 
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
+	this->m_capacidad_hoja = -1;
+	this->m_capacidad_interno = -1;
 
 	if (filePath.empty())
 	{
 		UT::LogError(UT::errSS << "Debe especificarse un archivo para el indice");
-		return; //throw ex?
+		//return; //throw ex?
+		throw "Nombre de archivo invalido.";
 	}
 
 	if (instanciadorRegistros == NULL)
 	{
 		UT::LogError(UT::errSS << "Debe especificarse un instanciador de registros");
-		return; //throw ex?
+		//return; //throw ex?
+		throw "No se encontro instanciador de registros.";
 	}
 
 	this->m_instanciador = instanciadorRegistros;
 
 	this->m_arch = new ArchivoBloques(filePath);
 
-	this->m_capacidad_hoja = this->m_arch->GetTamanioDatosBloque();
-	this->m_capacidad_interno = this->m_capacidad_hoja;
+	if (!this->m_arch->EstadoOK())
+	{
+		UT::LogError(UT::errSS << "Ocurrio un error al abrir el archivo de datos.");
+		delete this->m_instanciador;
+		delete this->m_arch;
+		//return;
+		throw "Error al abrir archivo.";
+	}
 
 	Utils::LogDebug(Utils::dbgSS << "Archivo de arbol leido. Capacidad de nodos: " << this->m_capacidad_hoja);
 
@@ -225,6 +280,9 @@ BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 		UT::LogError(UT::errSS << "Error: No se hallo el nodo " << nroNodo);
 		return NULL;
 	}
+
+	//Actualizo, si es necesario, la capacidad de los nodos a partir de la informacion de bloque
+	this->ActualizarCapacidadNodos(bl);
 
 	Registro* regCtrl = bl->obtenerRegistroDeControl();
 
@@ -283,6 +341,12 @@ BKDRegistro* BKDManagerDisco::InstanciarRegistro()
 	return this->m_instanciador->InstanciarRegistro();
 }
 
+int BKDManagerDisco::CalcularEspacioAOcupar(Registro* registro)
+{
+	return this->m_arch->CalcularTamanioFinalRegistro(registro);
+}
+
+
 BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 {
 	Utils::LogDebug(Utils::dbgSS << "Agregando Nodo... (Nivel: " << nivel << ")");
@@ -338,6 +402,9 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 	Utils::LogDebug(Utils::dbgSS << "Se inserto correctamente el registro de control.");
 
 	delete regCtrl;
+
+	//Actualizo, si es necesario, la capacidad de los nodos a partir de la informacion de bloque
+	this->ActualizarCapacidadNodos(bl);
 
 	if (nivel == 0)
 	{

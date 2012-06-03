@@ -128,36 +128,60 @@ void busquedaPorTeclado() {
 
 int main(int argc, char* argv[])
 {
-	//***********************
-	return Pruebas::PruebaArbolB2();
-	//***********************
+	try
+	{
+		//***********************
+		return Pruebas::PruebaArbolB2();
+		//***********************
 
-	indice = IndiceDatos::Crear("treeTest.UBA", 512);
-
-	cout << "===========================" << endl;
-	cout << "1. Insertar nuevo incidente" << endl;
-	cout << "2. Buscar incidente" << endl;
-	cout << "3. Finalizar" << endl;
-
-	string opcion;
-
-	cin >> opcion;
-
-	while (opcion != "3") {
-		if (opcion == "1") {
-			altaPorTeclado();
-		} else if (opcion == "2") {
-			busquedaPorTeclado();
-		}
+		indice = IndiceDatos::Crear("treeTest.UBA", 512);
 
 		cout << "===========================" << endl;
 		cout << "1. Insertar nuevo incidente" << endl;
 		cout << "2. Buscar incidente" << endl;
 		cout << "3. Finalizar" << endl;
 
-		cin >> opcion;
-	}
+		string opcion;
 
-	delete indice;
+		cin >> opcion;
+
+		while (opcion != "3") {
+			if (opcion == "1") {
+				altaPorTeclado();
+			} else if (opcion == "2") {
+				busquedaPorTeclado();
+			}
+
+			cout << "===========================" << endl;
+			cout << "1. Insertar nuevo incidente" << endl;
+			cout << "2. Buscar incidente" << endl;
+			cout << "3. Finalizar" << endl;
+
+			cin >> opcion;
+		}
+
+		delete indice;
+	}
+	catch (const std::exception& ex)
+	{
+		cerr << "Error: " << ex.what() <<endl;
+	}
+	catch (const std::string& ex)
+	{
+		cerr << "Error: " << ex <<endl;
+	}
+	catch (const char* ex)
+	{
+		cerr << "Error: " << ex <<endl;
+	}
+	catch (const int& ex)
+	{
+		cerr << "Error: código " << ex <<endl;
+
+	}
+	catch (...)
+	{
+		cerr << "Error no especificado" <<endl;
+	}
 
 }
