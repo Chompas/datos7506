@@ -5,13 +5,21 @@
  *      Author: vdiego
  */
 
-#include <iostream>
 #include "BKDManagerDisco.h"
+
+#include <iostream>
+#include <cstring>
+
 #include "BKDNodoHojaDisco.h"
 #include "BKDNodoInternoDisco.h"
+
+#include "../Comun/Utils.h"
 #include "../Disco/Registro.h"
+//#include "../Disco/RegistroDeLongitudFija.h"
+#include "../Disco/RegistroDeLongitudVariable.h"
 #include "../Disco/Bloque.h"
 
+namespace UT = Utils;
 
 using namespace std;
 
@@ -28,11 +36,19 @@ typedef struct
 RegControlNodo LeerRegistroControlNodo(Registro* registro)
 {
 	RegControlNodo rc;
+	rc.Nivel = -1;
 
 	if (registro != NULL)
 	{
-		//**TODO: Cargar El Nivel
+		int tam = 0;
+		char* data = registro->getDato(tam);
 
+		if (tam == sizeof(int))
+			memcpy(&rc.Nivel, data, tam);
+		else
+			UT::LogError(UT::errSS << "Error al leer el registro de control para el nodo");
+
+		delete data;
 	}
 
 	return rc;
@@ -40,9 +56,11 @@ RegControlNodo LeerRegistroControlNodo(Registro* registro)
 
 Registro* GuardarRegistroControlNodo(RegControlNodo regControl)
 {
-	//** TODO:
-
-	return NULL;
+	//guardo el nivel del nodo
+	//Registro* reg = new RegistroDeLongitudFija((char*)(&regControl.Nivel), sizeof(int), sizeof(int));
+	//**RegistroDeLongitudFija* reg = new RegistroDeLongitudFija((char*)(&regControl.Nivel), sizeof(int), sizeof(int));
+	RegistroDeLongitudVariable* reg = new RegistroDeLongitudVariable((char*)(&regControl.Nivel), sizeof(int));
+	return reg;
 }
 
 
@@ -80,7 +98,7 @@ int NroBloqueToNroNodo(int nroBloque)
 
 //***********************************************//
 
-BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesBloque)
+BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesBloque, BKDInstanciador* instanciadorRegistros)
 {
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
@@ -88,25 +106,55 @@ BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesB
 	this->m_capacidad_hoja = tamanioBytesBloque;
 	this->m_capacidad_interno = tamanioBytesBloque;
 
+
 	if (filePath.empty())
-			cerr << "Debe especificarse un archivo para el indice" << endl;
+	{
+		UT::LogError(UT::errSS << "Debe especificarse un archivo para el indice");
+		return; //throw ex?
+	}
 
 	if (tamanioBytesBloque < ArchivoBloques::GetTamanioMinimoBloque())
-			cerr << "Tamanio de Bloque insuficiente" << endl;
+	{
+		UT::LogError(UT::errSS << "Tamanio de Bloque insuficiente");
+		return; //throw ex?
+	}
 
+	if (instanciadorRegistros == NULL)
+	{
+		UT::LogError(UT::errSS << "Debe especificarse un instanciador de registros");
+		return; //throw ex?
+	}
+
+	this->m_instanciador = instanciadorRegistros;
+
+	//creo el archivo
 	this->m_arch = new ArchivoBloques(filePath, tamanioBytesBloque);
 
-	//Cargo la raiz
+	//creo el nodo raiz (ya lo guarda en disco)
+	this->m_raiz = this->AgregarNodo(0);
+
+	//Recargo la raiz a memoria
 	RefrescarRaiz();
 }
 
-BKDManagerDisco::BKDManagerDisco(const std::string& filePath)
+BKDManagerDisco::BKDManagerDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros)
 {
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
 
 	if (filePath.empty())
-			cerr << "Debe especificarse un archivo para el indice" << endl;
+	{
+		UT::LogError(UT::errSS << "Debe especificarse un archivo para el indice");
+		return; //throw ex?
+	}
+
+	if (instanciadorRegistros == NULL)
+	{
+		UT::LogError(UT::errSS << "Debe especificarse un instanciador de registros");
+		return; //throw ex?
+	}
+
+	this->m_instanciador = instanciadorRegistros;
 
 	this->m_arch = new ArchivoBloques(filePath);
 
@@ -125,6 +173,8 @@ BKDManagerDisco::~BKDManagerDisco()
 	if (this->m_arch != NULL)
 		delete this->m_arch;
 
+	if (this->m_instanciador != NULL)
+		delete this->m_instanciador;
 }
 
 BKDNodo* BKDManagerDisco::GetNodoRaiz()
@@ -149,7 +199,7 @@ BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 
 	if (bl == NULL)
 	{
-		cerr << "Error: No se hallo el nodo " << nroNodo << endl;
+		UT::LogError(UT::errSS << "Error: No se hallo el nodo " << nroNodo);
 		return NULL;
 	}
 
@@ -157,7 +207,7 @@ BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 
 	if (regCtrl == NULL)
 	{
-		cerr << "Error: Información de control corrupta en nodo " << nroNodo << endl;
+		UT::LogError(UT::errSS << "Error: Información de control corrupta en nodo " << nroNodo);
 		return NULL;
 	}
 
@@ -171,7 +221,7 @@ BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 		BKDNodoHojaDisco* nodoHoja = new BKDNodoHojaDisco(this, nroNodo, this->m_capacidad_hoja, rcn.Nivel);
 
 		if (!nodoHoja->LeerDeBloque(bl))
-			cerr << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque << endl;
+			UT::LogError(UT::errSS << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque);
 		else
 			nodo = nodoHoja;
 	}
@@ -180,15 +230,14 @@ BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 		BKDNodoInternoDisco* nodoInterno = new BKDNodoInternoDisco(this, nroNodo, this->m_capacidad_interno, rcn.Nivel);
 
 		if (!nodoInterno->LeerDeBloque(bl))
-			cerr << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque << endl;
+			UT::LogError(UT::errSS << "Error al leer nodo desde Bloque. Nro de bloque: " << nroBloque);
 		else
 			nodo = nodoInterno;
 	}
+	else
+		UT::LogError(UT::errSS << "Error: Información de nivel corrupta en nodo " << nroNodo);
 
 	delete bl;
-
-	if (nodo == NULL)
-		cerr << "Error: Información de nivel corrupta en nodo " << nroNodo << endl;
 
 	return nodo;
 }
@@ -201,16 +250,21 @@ BKDNodo* BKDManagerDisco::CrearNodoOffline(int nivel)
 	else if (nivel > 0)
 		return new BKDNodoInternoDisco(this, -1, this->m_capacidad_interno, nivel);
 	else
-		cerr << "Error al crear nodo offline: nivel inválido" << endl;
+		UT::LogError(UT::errSS << "Error al crear nodo offline: nivel inválido");
 
 	return NULL;
+}
+
+BKDRegistro* BKDManagerDisco::InstanciarRegistro()
+{
+	return this->m_instanciador->InstanciarRegistro();
 }
 
 BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 {
 	if (nivel < 0)
 	{
-		cerr << "Error al intentar agregar un nodo: el argumento 'nivel' es inválido." << endl;
+		UT::LogError(UT::errSS << "Error al intentar agregar un nodo: el argumento 'nivel' es inválido.");
 		return NULL;
 	}
 
@@ -220,11 +274,11 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 
 	if (bl == NULL)
 	{
-		cerr << "Error al intentar agregar un nodo al archivo." << endl;
+		UT::LogError(UT::errSS << "Error al intentar agregar un nodo al archivo.");
 		return NULL;
 	}
 	else if (nroBloque < 0)
-		cerr << "Error al intentar agregar un nodo al archivo, identificador invalido." << endl;
+		UT::LogError(UT::errSS << "Error al intentar agregar un nodo al archivo, identificador invalido.");
 
 	int nroNodo = NroBloqueToNroNodo(nroBloque);
 	RegControlNodo rcn;
@@ -233,7 +287,7 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
 
 	if (!bl->insertarRegistroDeControl(regCtrl))
-		cerr << "Error al intentar insertar registro de control de nodo." << endl;
+		UT::LogError(UT::errSS << "Error al intentar insertar registro de control de nodo.");
 
 	delete regCtrl;
 
@@ -244,7 +298,7 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 		if (nodoHoja->EscribirEnBloque(bl))
 			nodo = nodoHoja;
 		else
-			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo << endl;
+			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo);
 	}
 	else if (nivel > 0)
 	{
@@ -253,8 +307,11 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 		if (nodoInterno->EscribirEnBloque(bl))
 			nodo = nodoInterno;
 		else
-			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo << endl;
+			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo);
 	}
+
+	if (!m_arch->ActualizarBloque(nroBloque, *bl))
+		UT::LogError(UT::errSS << "Error al intentar actualizar bloque " << nroBloque);
 
 	delete bl;
 	return nodo;
@@ -266,7 +323,7 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 
 	if (nodo == NULL)
 	{
-		cerr << "Error al intentar guardar nodo: el argumento es NULL." << endl;
+		UT::LogError(UT::errSS << "Error al intentar guardar nodo: el argumento es NULL.");
 		return false;
 	}
 
@@ -274,13 +331,13 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 	int nroBloque = NroNodoToNumBloque(nodo->GetNumeroNodo());
 
 	if (nroBloque < 0)
-			cerr << "Error al intentar guardar nodo: identificador invalido." << endl;
+		UT::LogError(UT::errSS << "Error al intentar guardar nodo: identificador invalido.");
 
 	Bloque* bl = m_arch->GetBloque(nroBloque);
 
 	if (bl == NULL)
 	{
-		cerr << "Error: No se hallo el bloque " << nroBloque << endl;
+		UT::LogError(UT::errSS << "Error: No se hallo el bloque " << nroBloque);
 		return false;
 	}
 
@@ -290,7 +347,7 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 
 	if (!bl->actualizarRegistroDeControl(regCtrl))
 	{
-		cerr << "Error al intentar actualizar registro de control en bloque " << nroBloque << endl;
+		UT::LogError(UT::errSS << "Error al intentar actualizar registro de control en bloque " << nroBloque);
 		res = false;
 	}
 
@@ -303,7 +360,7 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 		if (nodoHoja->EscribirEnBloque(bl))
 			res = true;
 		else
-			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo() << endl;
+			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo());
 	}
 	else if (nodo->GetNivel() > 0)
 	{
@@ -312,13 +369,16 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 		if (nodoInterno->EscribirEnBloque(bl))
 			res = true;
 		else
-			cerr << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo() << endl;
+			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo());
 	}
+
+	if (!m_arch->ActualizarBloque(nroBloque, *bl))
+			UT::LogError(UT::errSS << "Error al intentar actualizar bloque " << nroBloque);
 
 	delete bl;
 
 	if (nodo->GetNumeroNodo() == this->m_raiz_id)
-			RefrescarRaiz();
+		RefrescarRaiz();
 
 	return res;
 }
@@ -326,5 +386,6 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 bool BKDManagerDisco::BorrarNodo(int nroNodo)
 {
 	//** TODO
+
 	return false;
 }

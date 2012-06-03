@@ -46,7 +46,7 @@ public:
 protected:
 	char* clonarDato (char* dato, int longitudDato);
 
-	virtual void setTipoRegistro ();
+	virtual void setTipoRegistro () = 0;
 
 };
 

@@ -30,18 +30,18 @@ BKDArbol* BKDArbol::CrearEnMemoria(const int capacidadNodoHoja, const int capaci
 }
 
 //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
-BKDArbol* BKDArbol::CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes)
+BKDArbol* BKDArbol::CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes, BKDInstanciador* instanciadorRegistros)
 {
 	BKDArbol* arbol = new BKDArbol();
-	arbol->m_manager = new BKDManagerDisco(filePath, tamanioBloqueBytes);
+	arbol->m_manager = new BKDManagerDisco(filePath, tamanioBloqueBytes, instanciadorRegistros);
 
 	return arbol;
 }
 
-BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath)
+BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros)
 {
 	BKDArbol* arbol = new BKDArbol();
-	arbol->m_manager = new BKDManagerDisco(filePath);
+	arbol->m_manager = new BKDManagerDisco(filePath, instanciadorRegistros);
 
 	return arbol;
 }

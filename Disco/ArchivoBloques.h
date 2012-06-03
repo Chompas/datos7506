@@ -23,8 +23,11 @@ protected:
 	void LeerCamposControl();
 	void GuardarCamposControl();
 	int GetCampoControl(int offset);
+	void SetCampoControl(int offset, int valor);
 
 	int GetPosBloque(int nroBloque);
+	int GetNroBloqueFromOffset(int offset);
+
 	int GetNroBloquePrimerLibre();
 
 public:

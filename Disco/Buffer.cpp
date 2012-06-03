@@ -13,7 +13,10 @@
 		this->longitudStream = 0;
 	}
 
-	Buffer::Buffer (char* stream, int longitudStream){
+	Buffer::Buffer (char* stream, int longitudStream)
+	{
+		this->stream = NULL;
+		this->longitudStream = 0;
 		this->setStream(stream, longitudStream);
 	}
 
@@ -28,9 +31,12 @@
 		return (this->clonarStream(this->stream, this->longitudStream));
 	}
 
-	void Buffer::setStream (char* stream, int longitudStream){
-		if ((stream != NULL) && (longitudStream > 0)){
-			if (this->stream != NULL) delete [](this->stream);
+	void Buffer::setStream (char* stream, int longitudStream)
+	{
+		if ((stream != NULL) && (longitudStream > 0))
+		{
+			if (this->stream != NULL)
+				delete[](this->stream);
 			this->stream = this->clonarStream(stream, longitudStream);
 			this->longitudStream = longitudStream;
 		}

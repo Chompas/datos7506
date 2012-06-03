@@ -9,17 +9,24 @@
 #include "Constantes.h"
 #include <cstring>
 
-	Registro::Registro(){
+	Registro::Registro()
+	{
 		this->dato = NULL;
 		this->longitudDato = 0;
 	}
 
-	Registro::Registro(char* dato, int longitudDato){
+	Registro::Registro(char* dato, int longitudDato)
+	{
+		this->dato = NULL;
+		this->longitudDato = 0;
 		this->setDato(dato, longitudDato);
 	}
 
-	Registro::~Registro(){
-		if (this->dato != NULL) delete [](this->dato);
+	Registro::~Registro()
+	{
+		if (this->dato != NULL)
+			delete [](this->dato);
+
 		this->dato = NULL;
 		this->longitudDato = 0;
 	}
@@ -33,9 +40,13 @@
 		return this->tipoRegistro;
 	}
 
-	void Registro::setDato(char* dato, int longitudDato){
-		if ((dato != NULL) && (longitudDato > 0)){
-			if (this->dato != NULL) delete [](this->dato);
+	void Registro::setDato(char* dato, int longitudDato)
+	{
+		if ((dato != NULL) && (longitudDato > 0))
+		{
+			if (this->dato != NULL)
+				delete [](this->dato);
+
 			this->dato = this->clonarDato(dato, longitudDato);
 			this->longitudDato = longitudDato;
 		}
@@ -45,7 +56,11 @@
 		return 0;
 	}
 
-	int Registro::serializar (Buffer* buffer, int posicion){
+	int Registro::serializar (Buffer* buffer, int posicion)
+	{
+		if (this->getLongitud() == 0)
+			return -1;
+
 		char* stream = new char[this->getLongitud()];
 		memset(stream, BASURA, this->getLongitud());
 		char* ptr = stream;
@@ -60,7 +75,8 @@
 		return 0;
 	}
 
-	int Registro::hidratar (Buffer* buffer, int posicion){
+	int Registro::hidratar (Buffer* buffer, int posicion)
+	{
 		int longitudRegistro;
 		int longitudDato;
 		char* stream = buffer->getStream(longitudRegistro);

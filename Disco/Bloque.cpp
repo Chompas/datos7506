@@ -23,7 +23,8 @@
 		this->espacioLibre = espacioLibre;
 	}
 
-	size_t Bloque::calcularEspacioLibre (){
+	size_t Bloque::calcularEspacioLibre ()
+	{
 		size_t espacioOcupado;
 
 		if (this->RLF)
@@ -31,10 +32,12 @@
 		else
 			espacioOcupado = LCCBRLV;
 
-		if (this->registros.size() > 0){
+		if (this->registros.size() > 0)
+		{
 			std::vector<Registro*>::iterator it = this->registros.begin();
 
-			for (unsigned int contador = 0; contador < this->registros.size(); contador++){
+			for (unsigned int contador = 0; contador < this->registros.size(); contador++)
+			{
 				if (this->RLF)
 					espacioOcupado += (*it)->getLongitud();
 				else
@@ -43,7 +46,7 @@
 			}
 		}
 
-		return (getLongitud() - espacioOcupado);
+		return (this->getLongitud() - espacioOcupado);
 	}
 
 	unsigned int Bloque::obtenerLimiteSuperior (){
@@ -80,7 +83,8 @@
 	void Bloque::setRLF (Registro *registro){
 
 		//si no hay ningun registro de datos toma el tipo de registro del primero que se inserte
-		if ((this->obtenerCantidadRegistros() == 0) || ((this->obtenerCantidadRegistros() == 1) and this->existeRegistroDeControl())){
+		if ((this->obtenerCantidadRegistros() == 0) || ((this->obtenerCantidadRegistros() == 1) and this->existeRegistroDeControl()))
+		{
 			if (registro->getTipoRegistro() == RLFija)
 				this->RLF = true;
 			else if (registro->getTipoRegistro() == RLVariable)
@@ -112,12 +116,14 @@
 			vaciar();
 		}
 
-		bool Bloque::insertarRegistro (Registro *registro){
+		bool Bloque::insertarRegistro (Registro *registro)
+		{
 			bool exito = false;
 
 			this->setRLF(registro);
 
-			if (entra (registro)){
+			if (entra(registro))
+			{
 				this->registros.push_back(clonarRegistro(registro));
 				actualizarEspacioLibre (calcularEspacioLibre ());
 				exito = true;
@@ -213,7 +219,8 @@
 		Registro* Bloque::obtenerRegistro (unsigned int posicionRegistro){
 			Registro* auxReg = NULL;
 
-			if ((posicionRegistro > 0) && (posicionRegistro <= obtenerLimiteSuperior())){
+			if ((posicionRegistro > 0) && (posicionRegistro <= obtenerLimiteSuperior()))
+			{
 				//se corre el indice de registros cuando no hay registro cero.
 				if (!existeRegistroDeControl())
 					posicionRegistro--;
@@ -234,11 +241,14 @@
 			return regAux;
 		}
 
-		void Bloque::vaciar (){
-			if (this->registros.size() > 0){
+		void Bloque::vaciar ()
+		{
+			if (this->registros.size() > 0)
+			{
 				std::vector<Registro*>::iterator it = this->registros.begin();
 
-				for (unsigned int contador = 0; contador < this->registros.size(); contador++){
+				for (unsigned int contador = 0; contador < this->registros.size(); contador++)
+				{
 					delete (*it);
 					it++;
 				}
@@ -275,7 +285,7 @@
 			char* ptr;
 			int cantidadRegistros = obtenerCantidadRegistros();
 //			int espaciolibre = obtenerEspacioLibre();
-			stream = new char[getLongitud()];
+			stream = new char[this->getLongitud()];
 
 			//se carga todo el buffer con basura
 			memset (stream, BASURA, this->getLongitud());
@@ -302,7 +312,7 @@
 			//Si los registros son de LF se agrega la longitud
 			if (this->RLF){
 				memcpy (ptr, &(this->longitudRLF), sizeof(int));
-				ptr++;
+				ptr += sizeof(int);
 			}
 
 			//presencia de registro de control
@@ -316,11 +326,13 @@
 
 			//registros
 			if (!registros.empty()){
-				for (unsigned int indiceReg = 0; indiceReg < registros.size(); indiceReg++){
+				for (unsigned int indiceReg = 0; indiceReg < registros.size(); indiceReg++)
+				{
 					Buffer* regBuf = new Buffer;
 					registros[indiceReg]->serializar(regBuf, 0);
 					int longitud;
 					char* streamRegistro = regBuf->getStream(longitud);
+
 					int longitudRegistro = registros[indiceReg]->getLongitud();
 
 					memcpy(ptr, &longitudRegistro, sizeof (int));
@@ -330,19 +342,27 @@
 
 					delete regBuf;
 					delete []streamRegistro;
-					}
+				}
 			}
-			buffer->setStream(stream, getLongitud());
+
+			buffer->setStream(stream, this->getLongitud());
 			delete []stream;
 			return 0;
-
 		}
 
 	int Bloque::hidratar (Buffer* buffer, int posicion){
 			int longitud;
 			char* stream = buffer->getStream(longitud);
 
-			if (stream != NULL){
+			if (this->longitud != longitud)
+			{
+				//** cerr << "Error al hidratar bloque: la longitud del bloque no concuerda con la del buffer" << endl;
+				delete[] stream;
+				return -1;
+			}
+
+			if (stream != NULL)
+			{
 				//carga campos de control
 				char* ptr = stream;
 				int cantidadRegistros;
@@ -385,7 +405,8 @@
 				ptr += sizeof(char);
 
 				//carga los registros
-				for (int indice = 0; indice < cantidadRegistros; indice++){
+				for (int indice = 0; indice < cantidadRegistros; indice++)
+				{
 					int longitudRegistro;
 					memcpy(&longitudRegistro, ptr, sizeof(int));
 					ptr += sizeof(int);
@@ -395,16 +416,17 @@
 					memcpy (streamRegistro, ptr, longitudRegistro);
 					Buffer* regBuf = new Buffer;
 					regBuf->setStream(streamRegistro, longitudRegistro);
-						Registro* auxReg;
 
-						if (this->RLF){
-							auxReg = new RegistroDeLongitudFija(longitudRegistro);
-							auxReg->hidratar(regBuf,0);
-							}
-						else{
-							auxReg = new RegistroDeLongitudVariable();
-							auxReg->hidratar(regBuf, 0);
-							}
+					Registro* auxReg;
+
+					if (this->RLF){
+						auxReg = new RegistroDeLongitudFija(longitudRegistro);
+						auxReg->hidratar(regBuf,0);
+						}
+					else{
+						auxReg = new RegistroDeLongitudVariable();
+						auxReg->hidratar(regBuf, 0);
+						}
 
 					insertarRegistro (auxReg);
 					ptr += longitudRegistro;

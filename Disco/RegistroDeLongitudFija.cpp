@@ -14,10 +14,14 @@
 		this->setTipoRegistro();
 	}
 
-	RegistroDeLongitudFija::RegistroDeLongitudFija(char* dato, int longitudDato, int longitud){
+	RegistroDeLongitudFija::RegistroDeLongitudFija(char* dato, int longitudDato, int longitud)
+		: Registro()
+	{
 		this->setLongitud(longitud);
 		this->setTipoRegistro();
-		if (this->longitudDatoValido(longitudDato)) Registro(dato, longitudDato);
+
+		if (this->longitudDatoValido(longitudDato))
+			this->setDato(dato, longitudDato);
 	}
 
 	RegistroDeLongitudFija::~RegistroDeLongitudFija(){

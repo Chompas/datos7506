@@ -11,6 +11,7 @@
 #include "BKDManager.h"
 #include "BKDClaves.h"
 #include "BKDRegistro.h"
+#include "BKDInstanciador.h"
 
 //representa un arbol B+ llevado a K-Dimensiones
 class BKDArbol
@@ -22,8 +23,8 @@ public:
 	virtual ~BKDArbol();
 
 	static BKDArbol* CrearEnMemoria(const int capacidadNodoHoja, const int capacidadNodoInterno); //en numero de registros y numero de claves, respectivamente
-	static BKDArbol* CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes); //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
-	static BKDArbol* AbrirDeDisco(const std::string& filePath);
+	static BKDArbol* CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes, BKDInstanciador* instanciadorRegistros); //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
+	static BKDArbol* AbrirDeDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros);
 
 	bool BuscarRegistro(const BKDClave& clave, BKDRegistro** registro);
 	bool BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado);

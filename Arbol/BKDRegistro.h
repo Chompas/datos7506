@@ -26,5 +26,4 @@ public:
 };
 
 
-
 #endif /* BKDREGISTRO_H_ */

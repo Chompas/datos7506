@@ -9,13 +9,15 @@
 #include "RegistroDeLongitudVariable.h"
 #include "Constantes.h"
 
-	RegistroDeLongitudVariable::RegistroDeLongitudVariable(){
-		Registro();
+	RegistroDeLongitudVariable::RegistroDeLongitudVariable()
+		: Registro()
+	{
 		this->setTipoRegistro();
 	}
 
-	RegistroDeLongitudVariable::RegistroDeLongitudVariable(char* dato, int longitudDato){
-		Registro(dato, longitudDato);
+	RegistroDeLongitudVariable::RegistroDeLongitudVariable(char* dato, int longitudDato)
+		: Registro(dato, longitudDato)
+	{
 		this->setTipoRegistro();
 	}
 
@@ -30,6 +32,7 @@
 		return (sizeof(int) + this->longitudDato);
 	}
 
-	void RegistroDeLongitudVariable::setTipoRegistro(){
+	void RegistroDeLongitudVariable::setTipoRegistro()
+	{
 		this->tipoRegistro = RLVariable;
 	}

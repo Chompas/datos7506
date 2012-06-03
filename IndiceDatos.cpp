@@ -6,9 +6,14 @@
  */
 
 #include "IndiceDatos.h"
+
 #include <iostream>
+#include "Claves/InstanciadorIncidentes.h"
+
 
 using namespace std;
+
+
 
 IndiceDatos::~IndiceDatos()
 {
@@ -19,7 +24,7 @@ IndiceDatos* IndiceDatos::Crear(const std::string filePath, int tamanioBloque)
 {
 	IndiceDatos* ret = new IndiceDatos();
 
-	ret->m_arbolBKD = BKDArbol::CrearEnDisco(filePath, tamanioBloque);
+	ret->m_arbolBKD = BKDArbol::CrearEnDisco(filePath, tamanioBloque, new InstanciadorIncidentes());
 
 	if (ret->m_arbolBKD == NULL)
 		cerr << "Ocurrió un error al intentar crear el archivo de indice." << endl;
@@ -31,7 +36,7 @@ IndiceDatos* IndiceDatos::Abrir(std::string filePath, int tamanioBloque)
 {
 	IndiceDatos* ret = new IndiceDatos();
 
-	ret->m_arbolBKD = BKDArbol::AbrirDeDisco(filePath);
+	ret->m_arbolBKD = BKDArbol::AbrirDeDisco(filePath, new InstanciadorIncidentes());
 
 	if (ret->m_arbolBKD == NULL)
 		cerr << "Ocurrió un error al intentar acceder al archivo de indice." << endl;

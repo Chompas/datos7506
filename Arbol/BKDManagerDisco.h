@@ -9,6 +9,7 @@
 #define BKDMANAGERDISCO_H_
 
 #include "BKDManager.h"
+#include "BKDInstanciador.h"
 #include "../Disco/ArchivoBloques.h"
 
 //implementacion para manejo de almacenamiento de nodos en disco
@@ -21,10 +22,11 @@ private:
 protected:
 	ArchivoBloques* m_arch;
 	BKDNodo* m_raiz;
+	BKDInstanciador* m_instanciador;
 
 public:
-	BKDManagerDisco(const std::string& filePath); //constructor solo de lectura de archivos preexistentes
-	BKDManagerDisco(const std::string& filePath, const int tamanioBytesBloque);
+	BKDManagerDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros); //constructor solo de lectura de archivos preexistentes
+	BKDManagerDisco(const std::string& filePath, const int tamanioBytesBloque, BKDInstanciador* instanciadorRegistros);
 	virtual ~BKDManagerDisco();
 
 	std::string GetFilePath();
@@ -35,6 +37,7 @@ public:
 	virtual BKDNodo* GetNodo(int nroNodo);
 
 	virtual BKDNodo* CrearNodoOffline(int nivel);
+	virtual BKDRegistro* InstanciarRegistro();
 
 	virtual BKDNodo* AgregarNodo(int nivel);
 	virtual bool GuardarNodo(BKDNodo* nodo);
