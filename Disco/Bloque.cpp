@@ -5,11 +5,14 @@
  *      Author: nacho
  */
 
-#include <string.h>
 #include "Bloque.h"
+
+#include <string.h>
+
 #include "RegistroDeLongitudFija.h"
 #include "RegistroDeLongitudVariable.h"
 #include "Constantes.h"
+#include "../Comun/Utils.h"
 
 	void Bloque::activarRegistroDeControl (){
 		this->registroDeControl = true;
@@ -45,6 +48,9 @@
 				it++;
 			}
 		}
+
+		int libre = this->getLongitud() - espacioOcupado;
+		Utils::LogDebug(Utils::dbgSS << " * ESPACIO LIBRE = " << libre);
 
 		return (this->getLongitud() - espacioOcupado);
 	}
@@ -135,10 +141,13 @@
 		bool Bloque::insertarRegistroDeControl (Registro *registroDeControl){
 			bool exito = false;
 
-			if (!existeRegistroDeControl()){
+			if (!existeRegistroDeControl())
+			{
 				if (this->registros.size() == 0)
-					exito = insertarRegistro (registroDeControl);
-				else if ((this->registros.size() > 0) && entra(registroDeControl)){
+					exito = insertarRegistro(registroDeControl);
+
+				else if ((this->registros.size() > 0) && entra(registroDeControl))
+				{
 					std::vector<Registro*>::iterator it = this->registros.begin();
 					this->registros.insert(it, clonarRegistro(registroDeControl));
 					actualizarEspacioLibre (calcularEspacioLibre ());
@@ -236,7 +245,7 @@
 			Registro* regAux = NULL;
 
 			if (existeRegistroDeControl())
-				regAux = clonarRegistro (this->registros[0]);
+				regAux = clonarRegistro(this->registros[0]);
 
 			return regAux;
 		}

@@ -77,13 +77,22 @@ BKDNodo* BKDManagerDisco::GetCopiaNodo(BKDNodo* nodo)
 
 void BKDManagerDisco::RefrescarRaiz()
 {
+	Utils::LogDebug(Utils::dbgSS << "Cargando nodo raiz desde el archivo... ");
+
 	if (this->m_raiz != NULL)
 	{
+		Utils::LogDebug(Utils::dbgSS << "Borrando raiz en memoria... ");
 		delete this->m_raiz;
 		this->m_raiz = NULL;
 	}
 
+	Utils::LogDebug(Utils::dbgSS << "Buscando raiz en disco... ");
 	this->m_raiz = this->GetNodo(this->m_raiz_id);
+
+	if (this->m_raiz == NULL)
+		Utils::LogError(Utils::errSS << "Error al intentar cargar raiz desde disco");
+	else
+		Utils::LogDebug(Utils::dbgSS << "Raiz cargada OK.");
 }
 
 int NroNodoToNumBloque(int nroNodo)
@@ -100,6 +109,10 @@ int NroBloqueToNroNodo(int nroBloque)
 
 BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesBloque, BKDInstanciador* instanciadorRegistros)
 {
+	Utils::LogDebug(Utils::dbgSS << "Creando BKDManagerDisco..." << endl
+								 << "\t\t Archivo: " << filePath << endl
+								 << "\t\t Tamanio Bloque: " << tamanioBytesBloque);
+
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
 
@@ -130,6 +143,8 @@ BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesB
 	//creo el archivo
 	this->m_arch = new ArchivoBloques(filePath, tamanioBytesBloque);
 
+
+	Utils::LogDebug(Utils::dbgSS << "Creando Nodo Raiz...");
 	//creo el nodo raiz (ya lo guarda en disco)
 	this->m_raiz = this->AgregarNodo(0);
 
@@ -139,6 +154,10 @@ BKDManagerDisco::BKDManagerDisco(const string& filePath, const int tamanioBytesB
 
 BKDManagerDisco::BKDManagerDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros)
 {
+	Utils::LogDebug(Utils::dbgSS << "Creando BKDManagerDisco..." << endl
+								 << "\t\t Archivo: " << filePath << endl
+								 << "\t\t Tamanio Bloque: Desconocido");
+
 	this->m_raiz_id = 1; //La raiz siempre es el nodo 1 de datos
 	this->m_raiz = NULL;
 
@@ -160,6 +179,8 @@ BKDManagerDisco::BKDManagerDisco(const std::string& filePath, BKDInstanciador* i
 
 	this->m_capacidad_hoja = this->m_arch->GetTamanioDatosBloque();
 	this->m_capacidad_interno = this->m_capacidad_hoja;
+
+	Utils::LogDebug(Utils::dbgSS << "Archivo de arbol leido. Capacidad de nodos: " << this->m_capacidad_hoja);
 
 	//Cargo la raiz
 	RefrescarRaiz();
@@ -193,6 +214,8 @@ BKDNodo* BKDManagerDisco::GetNodoPrimeraHoja()
 
 BKDNodo* BKDManagerDisco::GetNodo(int nroNodo)
 {
+	Utils::LogDebug(Utils::dbgSS << "Buscando en disco Nodo nro: " << nroNodo);
+
 	//voy a disco a obtener el nodo indicado.
 	int nroBloque = NroNodoToNumBloque(nroNodo);
 	Bloque* bl = m_arch->GetBloque(nroBloque);
@@ -262,6 +285,8 @@ BKDRegistro* BKDManagerDisco::InstanciarRegistro()
 
 BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 {
+	Utils::LogDebug(Utils::dbgSS << "Agregando Nodo... (Nivel: " << nivel << ")");
+
 	if (nivel < 0)
 	{
 		UT::LogError(UT::errSS << "Error al intentar agregar un nodo: el argumento 'nivel' es inválido.");
@@ -278,21 +303,49 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 		return NULL;
 	}
 	else if (nroBloque < 0)
+	{
 		UT::LogError(UT::errSS << "Error al intentar agregar un nodo al archivo, identificador invalido.");
+		delete bl;
+		return NULL;
+	}
 
 	int nroNodo = NroBloqueToNroNodo(nroBloque);
 	RegControlNodo rcn;
 	rcn.Nivel = nivel;
 
+	Utils::LogDebug(Utils::dbgSS << "Nuevo numero de nodo: " << nroNodo << " (Bloque: " << nroBloque << ")" );
+
+	Utils::LogDebug(Utils::dbgSS << "Generando registro de control con informacion de nivel del nodo...");
 	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
 
+	if (regCtrl == NULL)
+	{
+		UT::LogError(UT::errSS << "Error al generar registro de control del nodo.");
+		delete bl;
+		return NULL;
+	}
+
+	Utils::LogDebug(Utils::dbgSS << "Informacion de control generada OK. Intentando insertar registro de control al bloque...");
+
 	if (!bl->insertarRegistroDeControl(regCtrl))
+	{
 		UT::LogError(UT::errSS << "Error al intentar insertar registro de control de nodo.");
+		delete regCtrl;
+		delete bl;
+		return NULL;
+	}
+
+	Utils::LogDebug(Utils::dbgSS << "Se inserto correctamente el registro de control.");
 
 	delete regCtrl;
 
 	if (nivel == 0)
 	{
+		Utils::LogDebug(Utils::dbgSS << "Creando nodo hoja..." << endl
+									 << "\t\t Nivel: " << nivel << endl
+									 << "\t\t Capacidad: " << this->m_capacidad_hoja << endl
+									 << "\t\t Nro: " << nroNodo);
+
 		BKDNodoHojaDisco* nodoHoja = new BKDNodoHojaDisco(this, nroNodo, this->m_capacidad_hoja, nivel);
 
 		if (nodoHoja->EscribirEnBloque(bl))
@@ -302,6 +355,11 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 	}
 	else if (nivel > 0)
 	{
+		Utils::LogDebug(Utils::dbgSS << "Creando nodo interno..." << endl
+									 << "\t\t Nivel: " << nivel << endl
+									 << "\t\t Capacidad: " << this->m_capacidad_interno << endl
+									 << "\t\t Nro: " << nroNodo);
+
 		BKDNodoInternoDisco* nodoInterno = new BKDNodoInternoDisco(this, nroNodo, this->m_capacidad_interno, nivel);
 
 		if (nodoInterno->EscribirEnBloque(bl))
@@ -310,8 +368,12 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nroNodo);
 	}
 
+	Utils::LogDebug(Utils::dbgSS << "Intentando grabar bloque a disco...");
+
 	if (!m_arch->ActualizarBloque(nroBloque, *bl))
 		UT::LogError(UT::errSS << "Error al intentar actualizar bloque " << nroBloque);
+	else
+		Utils::LogDebug(Utils::dbgSS << "Bloque grabado OK. (Bloque nro: " << nroBloque << ")");
 
 	delete bl;
 	return nodo;
@@ -341,11 +403,14 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 		return false;
 	}
 
+	//lo vacio y lo piso con los nuevos datos
+	bl->vaciar();
+
 	RegControlNodo rcn;
 	rcn.Nivel = nodo->GetNivel();
 	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
 
-	if (!bl->actualizarRegistroDeControl(regCtrl))
+	if (!bl->insertarRegistroDeControl(regCtrl))
 	{
 		UT::LogError(UT::errSS << "Error al intentar actualizar registro de control en bloque " << nroBloque);
 		res = false;

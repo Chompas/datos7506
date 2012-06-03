@@ -23,6 +23,8 @@ BKDNodoHojaDisco::BKDNodoHojaDisco(BKDManager* manager,int nroNodo, int capacida
 
 bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Intentando escribir nodo a bloque en memoria...");
+
 	if (bloque == NULL)
 	{
 		UT::LogError(UT::errSS << "Error al intentar escribir el nodo " << this->m_nro_nodo << ": bloque NULL");
@@ -34,6 +36,7 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 	//**RegistroDeLongitudFija* regSiguienteHoja = new RegistroDeLongitudFija((char*)(&this->m_siguienteHoja), sizeof(int), sizeof(int));
 	RegistroDeLongitudVariable* regSiguienteHoja = new RegistroDeLongitudVariable((char*)(&this->m_siguienteHoja), sizeof(int));
 
+	Utils::LogDebug(Utils::dbgSS << "Intentando grabar informacion de siguiente hoja...");
 	if (!bloque->insertarRegistro(regSiguienteHoja))
 	{
 		UT::LogError(UT::errSS << "Error al intentar escribir nodo hoja "
@@ -42,10 +45,15 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 		delete regSiguienteHoja;
 		return false;
 	}
+	else
+		Utils::LogDebug(Utils::dbgSS << "Se guardo correctamente el campo 'siguiente hoja'");
 
 	delete regSiguienteHoja;
 
 	//grabo cada uno de los registros de datos
+
+	Utils::LogDebug(Utils::dbgSS << "Guardando registros de datos al bloque... (cantidad de registros: "
+								 << this->m_registros.size() << ")" );
 
 	RegsIterator it = this->m_registros.begin();
 
@@ -53,6 +61,7 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 	{
 		Buffer buff;
 
+		Utils::LogDebug(Utils::dbgSS << "Serializando registro... (posicion: " << idx << ")" );
 		if ((*it)->serializar(&buff, 0) != 0)
 		{
 			UT::LogError(UT::errSS << "Error al intentar escribir nodo hoja " << this->m_nro_nodo
@@ -60,13 +69,15 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 								   << idx);
 			return false;
 		}
-
+		else
+			Utils::LogDebug(Utils::dbgSS << "Registro serializado OK.");
 
 		int tamDatosReg = 0;
 		char* datosReg = buff.getStream(tamDatosReg);
 		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosReg, tamDatosReg);
 		delete[] datosReg;
 
+		Utils::LogDebug(Utils::dbgSS << "Intentando insertar datos del registro en el bloque...");
 		if (!bloque->insertarRegistro(regV))
 		{
 			UT::LogError(UT::errSS << "Error al intentar escribir nodo hoja "
@@ -76,9 +87,13 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 			delete regV;
 			return false;
 		}
+		else
+			Utils::LogDebug(Utils::dbgSS << "Registro insertado correctamente en el bloque.");
 
 		delete regV;
 	}
+
+	Utils::LogDebug(Utils::dbgSS << "Se escribio correctamente el nodo al bloque en memoria.");
 
 	return true;
 }
@@ -106,7 +121,7 @@ bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 
 	int regIdx = 1; //los registros van del 1 al N
 	//Leo el primer registro, que es el puntero a la siguiente hoja.
-	Registro* regSiguienteHoja = bloque->obtenerRegistro(1);
+	Registro* regSiguienteHoja = bloque->obtenerRegistro(regIdx);
 
 	if (regSiguienteHoja == NULL)
 	{

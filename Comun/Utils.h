@@ -16,8 +16,12 @@ namespace Utils
 {
 	extern std::stringstream errSS;
 
+	extern bool debugMode;
+	extern std::stringstream dbgSS;
+
 	void LogError(const std::ostream& mensaje);
 
+	void LogDebug(const std::ostream& mensaje);
 
 
 

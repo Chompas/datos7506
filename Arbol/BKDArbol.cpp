@@ -9,6 +9,7 @@
 #include "BKDNodoInterno.h"
 #include "BKDManagerMemoria.h"
 #include "BKDManagerDisco.h"
+#include "../Comun/Utils.h"
 
 #include <iostream>
 
@@ -32,6 +33,8 @@ BKDArbol* BKDArbol::CrearEnMemoria(const int capacidadNodoHoja, const int capaci
 //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
 BKDArbol* BKDArbol::CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes, BKDInstanciador* instanciadorRegistros)
 {
+	Utils::LogDebug(Utils::dbgSS << "Creando Arbol en disco...");
+
 	BKDArbol* arbol = new BKDArbol();
 	arbol->m_manager = new BKDManagerDisco(filePath, tamanioBloqueBytes, instanciadorRegistros);
 
@@ -40,6 +43,8 @@ BKDArbol* BKDArbol::CrearEnDisco(const std::string& filePath, const int tamanioB
 
 BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros)
 {
+	Utils::LogDebug(Utils::dbgSS << "Leyendo Arbol de disco...");
+
 	BKDArbol* arbol = new BKDArbol();
 	arbol->m_manager = new BKDManagerDisco(filePath, instanciadorRegistros);
 
@@ -49,6 +54,8 @@ BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath, BKDInstanciador* i
 
 bool BKDArbol::BuscarRegistro(const BKDClave& clave, BKDRegistro** registro)
 {
+	Utils::LogDebug(Utils::dbgSS << "Buscando en arbol por clave simple (clave: '" << clave.ToString() << "')" );
+
 	BKDNodo* raiz = this->m_manager->GetNodoRaiz();
 	bool res = false;
 
@@ -65,6 +72,10 @@ bool BKDArbol::BuscarRegistro(const BKDClave& clave, BKDRegistro** registro)
 
 bool BKDArbol::BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
 {
+	Utils::LogDebug(Utils::dbgSS << "Buscando en arbol por rango de claves:" << endl
+								 << "\t\t Clave de inicio: '" << claveInicio.ToString() << "'" << endl
+								 << "\t\t Clave de fin: '" << claveFin.ToString() << "'");
+
 	resultado.clear();
 
 	if (claveFin.Comparar(claveInicio) == -1)
@@ -88,6 +99,20 @@ bool BKDArbol::BuscarPorRango(const BKDClave& claveInicio, const BKDClave& clave
 
 bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 {
+	BKDClave* claveReg = registro.GetClave();
+
+	if (claveReg == NULL)
+	{
+		Utils::LogError(Utils::errSS << "Error al insertar registro: clave NULL");
+		return false;
+	}
+
+	Utils::LogDebug(Utils::dbgSS << "Insertando nuevo registro..." << endl
+								 << "Clave: '" << claveReg->ToString() << "'" << endl
+								 << "Datos: '" << registro.ToString() << "'");
+
+	delete claveReg;
+
 	BKDNodo* raiz = this->m_manager->GetNodoRaiz();
 
 	//Si aun no existe la raiz, tengo que crearla

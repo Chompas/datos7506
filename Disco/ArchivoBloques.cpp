@@ -6,7 +6,7 @@
  */
 
 #include "ArchivoBloques.h"
-#include <iostream>
+#include "../Comun/Utils.h"
 
 using namespace std;
 
@@ -48,16 +48,28 @@ int GetOffsetBloques()
 
 void ArchivoBloques::LeerCamposControl()
 {
+	Utils::LogDebug(Utils::dbgSS << "Leyendo Campos de control del archivo...");
+
 	//Accede al archivo a los primeros bytes y obtiene la informacion de control
 	//(tamanio bloque, cant bloques, bloqueslibres)
 
 	this->m_tamBloque = this->GetCampoControl(GetOffsetTamBloque());
 	this->m_cantBloques = this->GetCampoControl(GetOffsetCantBloques());
 	this->m_primerBloqueLibre = this->GetCampoControl(GetOffsetBloquesLibres());
+
+	Utils::LogDebug(Utils::dbgSS << "Leidos Campos de control del archivo..." << endl
+								 << "\t\t Campo 'TamanioBloque', Valor '" << this->m_tamBloque << "', Posicion " << GetOffsetTamBloque() << endl
+								 << "\t\t Campo 'CantidadBloques', Valor '" << this->m_cantBloques << "', Posicion " << GetOffsetCantBloques() << endl
+								 << "\t\t Campo 'PrimerBloqueLibre', Valor '" << this->m_primerBloqueLibre << "', Posicion " << GetOffsetBloquesLibres());
 }
 
 void ArchivoBloques::GuardarCamposControl()
 {
+	Utils::LogDebug(Utils::dbgSS << "Guardando Campos de control del archivo..." << endl
+								 << "\t\t Campo 'TamanioBloque', Valor '" << this->m_tamBloque << "', Posicion " << GetOffsetTamBloque() << endl
+								 << "\t\t Campo 'CantidadBloques', Valor '" << this->m_cantBloques << "', Posicion " << GetOffsetCantBloques() << endl
+								 << "\t\t Campo 'PrimerBloqueLibre', Valor '" << this->m_primerBloqueLibre << "', Posicion " << GetOffsetBloquesLibres());
+
 	//Guarda los campos de control en el archivo
 	this->SetCampoControl(GetOffsetTamBloque(), this->m_tamBloque);
 	this->SetCampoControl(GetOffsetCantBloques(), this->m_cantBloques);
@@ -115,6 +127,8 @@ int ArchivoBloques::GetNroBloquePrimerLibre()
 
 ArchivoBloques::ArchivoBloques(std::string filePath, int tamBloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Creando Archivo de Bloques...");
+
 	this->m_filePath = filePath;
 	this->m_tamBloque = tamBloque;
 	this->m_cantBloques = 0;
@@ -122,15 +136,36 @@ ArchivoBloques::ArchivoBloques(std::string filePath, int tamBloque)
 
 
 	this->m_file.open(filePath.c_str(), fstream::out | fstream::binary | fstream::trunc | fstream::in);
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar crear el archivo.");
+		return; //? throw ex?
+	}
+	else
+		Utils::LogDebug(Utils::dbgSS << "Archivo creado OK");
+
 	GuardarCamposControl();
 }
 
 ArchivoBloques::ArchivoBloques(std::string filePath)
 {
+	Utils::LogDebug(Utils::dbgSS << "Leyendo Archivo de Bloques..." << endl
+								 << "\t\t Archivo: " << filePath);
+
 	this->m_filePath = filePath;
 	this->m_file.open(filePath.c_str(), fstream::out | fstream::binary | fstream::in);
 
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar abrir el archivo.");
+		return; //? throw ex?
+	}
+
 	LeerCamposControl();
+
+	Utils::LogDebug(Utils::dbgSS << "Leido Archivo de Bloques, Tamanio Bloque: " << this->m_tamBloque);
+
 }
 
 ArchivoBloques::~ArchivoBloques()
@@ -157,25 +192,28 @@ int ArchivoBloques::GetTamanioDatosBloque()
 //nro Bloque de 1 en adelante. Si no se encuentra el nro de bloque, devuelve NULL
 Bloque* ArchivoBloques::GetBloque(int nroBloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Buscando en disco bloque nro: " << nroBloque);
+
 	int pos = this->GetPosBloque(nroBloque);
 	int tam = this->GetTamanioTotalBloque();
 	this->m_file.seekg(pos, ios::beg);
 
 	char* bf = new char[tam];
-	char* it = bf;
-	this->m_file.read(it, tam);
+	this->m_file.read(bf, tam);
 
 	if (this->m_file.gcount() != tam)
 	{
-		cerr << "Error al intentar leer el bloque " << nroBloque << endl;
+		Utils::LogError(Utils::errSS << "Error al intentar leer el bloque " << nroBloque);
 		return NULL;
 	}
 
 	Buffer buff = Buffer(bf, tam);
+	delete[] bf;
+
 	Bloque* bl = new Bloque(&buff, tam);
 
 	if (bl == NULL)
-		cerr << "Error al intentar obtener bloque " << nroBloque << endl;
+		Utils::LogError(Utils::errSS << "Error al intentar obtener bloque " << nroBloque);
 
 	return bl;
 }
@@ -183,6 +221,8 @@ Bloque* ArchivoBloques::GetBloque(int nroBloque)
 //Si no se puede agregar el bloque, devuelve NULL y -1 como numero de bloque
 Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Agregando bloque al archivo...");
+
 	nroBloque = -1;
 	Bloque* bloque = NULL;
 	int pos = 0;
@@ -199,8 +239,20 @@ Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 	pos = this->m_file.tellp();
 	nroBloque = this->GetNroBloqueFromOffset(pos);
 
+	Utils::LogDebug(Utils::dbgSS << "Nro de bloque del nuevo bloque: " << nroBloque);
+
+	Utils::LogDebug(Utils::dbgSS << "Intentando escribir bloque al archivo... (Tamanio: " << tamBF << ")");
 	this->m_file.write(bf, tamBF);
 	delete[] bf;
+
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar escribir bloque al archivo.");
+		delete bloque;
+		return NULL;
+	}
+	else
+		Utils::LogDebug(Utils::dbgSS << "Bloque guardado OK.");
 
 	this->m_cantBloques++;
 	GuardarCamposControl();
@@ -210,26 +262,45 @@ Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 
 bool ArchivoBloques::ActualizarBloque(int nroBloque, Bloque& bloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Intentando guardar bloque a disco... (Nro de bloque: " << nroBloque << ")" );
+
 	int pos = this->GetPosBloque(nroBloque);
 	int tam = this->GetTamanioTotalBloque();
 
 	Buffer buff = Buffer();
-	bloque.serializar(&buff, 0);
+
+	Utils::LogDebug(Utils::dbgSS << "Serializando bloque...");
+	if (bloque.serializar(&buff, 0) != 0)
+	{
+		Utils::LogError(Utils::errSS << "Error al serializar bloque.");
+		return false;
+	}
+	Utils::LogDebug(Utils::dbgSS << "Bloque serializado OK.");
+
 	int tamBF = 0;
 	char* bf = buff.getStream(tamBF);
 
 	if (tam != tamBF)
 	{
-		cerr << "Error al intentar actualizar bloque: el tamanio de bloque es incorrecto" << endl;
+		Utils::LogError(Utils::errSS << "Error al intentar actualizar bloque: el tamanio de bloque es incorrecto");
 		if (bf != NULL)
 			delete[] bf;
 		return false;
 	}
 
+	Utils::LogDebug(Utils::dbgSS << "Escribiendo bloque al archivo... (offset: " << pos << ", tamanio: " << tamBF << ")" );
+
 	this->m_file.seekp(pos, ios::beg);
 	this->m_file.write(bf, tamBF);
 	delete[] bf;
 
+	if (this->m_file.fail())
+	{
+		Utils::LogError(Utils::errSS << "Error al intentar actualizar bloque: error al escribir al archivo");
+		return false;
+	}
+
+	Utils::LogDebug(Utils::dbgSS << "Bloque escrito OK.");
 	return true;
 }
 

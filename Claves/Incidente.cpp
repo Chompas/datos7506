@@ -18,8 +18,13 @@
 #include <stdlib.h>
 #include <string.h>
 
-Incidente::Incidente() {
-
+Incidente::Incidente()
+{
+	this->linea = -1;
+	this->horario = -1;
+	this->falla = -1;
+	this->accidente = -1;
+	this->formacion = -1;
 }
 
 Incidente::Incidente(string incAParsear) {
@@ -166,8 +171,7 @@ void Incidente::imprimirIncidenteConClaves () {
 int Incidente::getLongitud(){
 
 	//Longitud total de los 5 ints
-
-	return 20;
+	return 5 * sizeof(int);
 }
 
 int Incidente::serializar (Buffer* buffer, int posicion){

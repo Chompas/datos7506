@@ -29,6 +29,12 @@
 
 using namespace std;
 
+namespace Pruebas
+{
+	int PruebaArbolB2();
+}
+
+
 IndiceDatos* indice;
 
 void altaPorTeclado() {
@@ -43,7 +49,7 @@ void altaPorTeclado() {
 		Incidente *unIncidente = new Incidente(incidente);
 
 		//Aca en vez de imprimir el incidente hay que llamar a insertar arbol
-		unIncidente->imprimirIncidenteConClaves();
+		//unIncidente->imprimirIncidenteConClaves();
 		indice->InsertarIncidente(*unIncidente);
 
 		cin >> incidente;
@@ -122,9 +128,11 @@ void busquedaPorTeclado() {
 
 int main(int argc, char* argv[])
 {
+	//***********************
+	return Pruebas::PruebaArbolB2();
+	//***********************
+
 	indice = IndiceDatos::Crear("treeTest.UBA", 512);
-
-
 
 	cout << "===========================" << endl;
 	cout << "1. Insertar nuevo incidente" << endl;

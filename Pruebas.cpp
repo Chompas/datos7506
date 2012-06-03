@@ -16,8 +16,9 @@
 #include "Disco/IndicesManager.h"
 #include "Claves/Incidente.h"
 #include "Arbol/BKDRegistro.h"
-
 #include "IndiceDatos.h"
+#include "Claves/InstanciadorIncidentes.h"
+#include "Comun/Utils.h"
 
 #include <string.h>
 #include <iostream>
@@ -33,14 +34,19 @@ using namespace std;
 namespace Pruebas
 {
 
-	static int PruebaArbolB2()
+	int PruebaArbolB2()
 	{
-		string filePath = "";
+		string filePath = "PruebaArbolB2.UBA";
 		int cap_hoja = 4;
 		int cap_int = 3;
 
-		//BKDArbol arbol = BKDArbol(filePath, cap_hoja, cap_int);
-		BKDArbol* arbol = BKDArbol::CrearEnMemoria(cap_hoja, cap_int);
+		Utils::debugMode = true;
+
+		//BKDArbol* arbol = BKDArbol::CrearEnMemoria(cap_hoja, cap_int);
+
+		BKDArbol* arbol = BKDArbol::CrearEnDisco(filePath, 512, new InstanciadorIncidentes());
+		//BKDArbol* arbol = BKDArbol::AbrirDeDisco(filePath, new InstanciadorIncidentes());
+
 
 		cout << endl;
 		cout << "======================== Comenzando pruebas de Arbol BKD ... =============";
@@ -55,7 +61,7 @@ namespace Pruebas
 		cout << "Insertando valores 0..999";
 		cout << endl;
 
-		int cantRegs = 70;
+		int cantRegs = 1;//70;
 		vector<string> clavesInsert = vector<string>();
 
 		for (int i = 0; i < cantRegs; i++)
