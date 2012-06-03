@@ -10,7 +10,11 @@
 #include <cstring>
 #include "../Disco/IndicesManager.h"
 
-namespace std {
+using namespace std;
+
+ClaveFalla::ClaveFalla(const int& falla)
+	: ClaveInt(falla)
+{ }
 
 // -1: this < clave
 //  0: this == clave
@@ -55,5 +59,3 @@ int ClaveFalla::Comparar(const BKDClave& clave) const
 
 	return retVal;
 }
-
-} /* namespace std */

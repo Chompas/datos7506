@@ -15,6 +15,8 @@ namespace std {
 
 class ClaveAccidente : public ClaveInt {
 public:
+	ClaveAccidente(const int& accidente);
+
 	virtual int Comparar(const BKDClave& clave) const;
 };
 

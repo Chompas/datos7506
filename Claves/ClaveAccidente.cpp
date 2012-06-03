@@ -12,6 +12,10 @@
 
 namespace std {
 
+ClaveAccidente::ClaveAccidente(const int& accidente)
+	: ClaveInt(accidente)
+{ }
+
 // -1: this < clave
 //  0: this == clave
 //  1: this > clave
