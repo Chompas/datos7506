@@ -70,7 +70,15 @@ string IndicesManager::obtenerValor(int clave) {
 
 	map<int, string>::const_iterator it = catalogo.find(clave);
 
-	return it->second;
+	if (catalogo.find(clave) == catalogo.end() ) {
+	  // not found
+		return "0";
+	}
+	else {
+	  // found
+		return it->second;
+	}
+
 }
 
 int IndicesManager::obtenerClave(string valor) {

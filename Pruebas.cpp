@@ -44,8 +44,8 @@ namespace Pruebas
 
 		//BKDArbol* arbol = BKDArbol::CrearEnMemoria(cap_hoja, cap_int);
 
-		BKDArbol* arbol = BKDArbol::CrearEnDisco(filePath, 512, new InstanciadorIncidentes());
-		//BKDArbol* arbol = BKDArbol::AbrirDeDisco(filePath, new InstanciadorIncidentes());
+		//BKDArbol* arbol = BKDArbol::CrearEnDisco(filePath, 512, new InstanciadorIncidentes());
+		BKDArbol* arbol = BKDArbol::AbrirDeDisco(filePath, new InstanciadorIncidentes());
 
 
 		cout << endl;
@@ -74,11 +74,36 @@ namespace Pruebas
 		for (int i = 0; i < cantRegs; i++)
 		//for (int i = cantRegs-1; i >= 0; i--)
 		{
-			Incidente reg = Incidente();
-			reg.formacion = i;
-			reg.linea = i/2;
+			Incidente reg = Incidente("Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;15");
 
 			if (!arbol->InsertarRegistro(reg))
+			{
+				cerr << "Error al insertar clave " << reg.formacion << endl;
+				delete arbol;
+				return -1;
+			}
+
+			Incidente reg2 = Incidente("Sarmiento;2011-02-2T14:57:50;motores_al_50;choque_con_otra_formacion;6");
+
+			if (!arbol->InsertarRegistro(reg2))
+			{
+				cerr << "Error al insertar clave " << reg.formacion << endl;
+				delete arbol;
+				return -1;
+			}
+
+			Incidente reg3 = Incidente("Belgrano_norte;2010-10-22T12:09:25;motores_al_80;desacoplado;25");
+
+			if (!arbol->InsertarRegistro(reg3))
+			{
+				cerr << "Error al insertar clave " << reg.formacion << endl;
+				delete arbol;
+				return -1;
+			}
+
+			Incidente reg4 = Incidente("Urquiza;2011-03-15T18:26:09;frena_50;no_enciende;10");
+
+			if (!arbol->InsertarRegistro(reg4))
 			{
 				cerr << "Error al insertar clave " << reg.formacion << endl;
 				delete arbol;
