@@ -19,15 +19,19 @@ public:
 
 	virtual ~ClaveIncidente();
 
-	int Comparar(const BKDClaveMultiple& clave);
+	int Comparar(const BKDClaveMultiple& clave) const;
 
-	int GetDimension();
+	int GetDimension() const;
 
 	int serializar (Buffer* buffer, int posicion);
 
 	int hidratar (Buffer* buffer, int posicion);
 
 	int getLongitud();
+
+	BKDClave* GetSubclave(int dimension) const;
+
+	string ToString() const;
 };
 
 #endif /* CLAVEINDICENTE_H_ */

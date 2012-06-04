@@ -52,9 +52,9 @@ BKDArbol* BKDArbol::AbrirDeDisco(const std::string& filePath, BKDInstanciador* i
 }
 
 
-bool BKDArbol::BuscarRegistro(const BKDClave& clave, BKDRegistro** registro)
+bool BKDArbol::BuscarRegistro(const BKDClaveMultiple& clave, BKDRegistro** registro)
 {
-	Utils::LogDebug(Utils::dbgSS << "Buscando en arbol por clave simple (clave: '" << clave.ToString() << "')" );
+	Utils::LogDebug(Utils::dbgSS << "Buscando en arbol por clave multiple (clave: '" << clave.ToString() << "')" );
 
 	BKDNodo* raiz = this->m_manager->GetNodoRaiz();
 	bool res = false;
@@ -70,7 +70,7 @@ bool BKDArbol::BuscarRegistro(const BKDClave& clave, BKDRegistro** registro)
 }
 
 
-bool BKDArbol::BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
+bool BKDArbol::BuscarPorRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado)
 {
 	Utils::LogDebug(Utils::dbgSS << "Buscando en arbol por rango de claves:" << endl
 								 << "\t\t Clave de inicio: '" << claveInicio.ToString() << "'" << endl

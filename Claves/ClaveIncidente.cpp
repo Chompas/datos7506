@@ -13,6 +13,7 @@
 #include <vector>
 #include <stdio.h>
 #include <string.h>
+#include <sstream>
 
 using namespace std;
 
@@ -51,7 +52,7 @@ ClaveIncidente::~ClaveIncidente() {
 	this->m_subclaves.clear();
 }
 
-int ClaveIncidente::GetDimension() {
+int ClaveIncidente::GetDimension() const {
 
 	return (int) m_subclaves.size();
 }
@@ -59,7 +60,7 @@ int ClaveIncidente::GetDimension() {
 // -1: this < clave
 //  0: this == clave
 //  1: this > clave
-int ClaveIncidente::Comparar(const BKDClaveMultiple& clave)
+int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
 {
 
 	vector<BKDClave*>::const_iterator it2 = clave.m_subclaves.begin();
@@ -81,6 +82,28 @@ int ClaveIncidente::Comparar(const BKDClaveMultiple& clave)
 	}
 
 	return resultado;
+}
+
+BKDClave* ClaveIncidente::GetSubclave(int dimension) const {
+
+	return m_subclaves[dimension];
+}
+
+string ClaveIncidente::ToString() const
+{
+	vector<BKDClave*>::const_iterator it;
+	stringstream ss;
+	ss << " [";
+
+	for ( it=m_subclaves.begin() ; it < m_subclaves.end(); it++ ) {
+		ss << "('";
+		ss << (*it)->ToString();
+		ss << "') , ";
+	}
+
+	ss << "] ";
+
+	return ss.str();
 }
 
 int ClaveIncidente::serializar (Buffer* buffer, int posicion){

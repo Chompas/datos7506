@@ -78,16 +78,16 @@ int BKDNodoHoja::CantidadAMover()
 	return (this->m_capacidad / 2);
 }
 
-bool BKDNodoHoja::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
+bool BKDNodoHoja::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro)
 {
 	//recorro en orden de claves, si existe lleno el registro
 
 	RegsIterator it = this->m_registros.begin();
-	BKDClave* itClave = NULL;
+	BKDClaveMultiple* itClave = NULL;
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClave();
+		itClave = (*it)->GetClaveMultiple();
 
 		if (itClave->Comparar(clave) != -1)
 			break;
@@ -124,17 +124,17 @@ bool BKDNodoHoja::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 }
 
 
-bool BKDNodoHoja::BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
+bool BKDNodoHoja::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado)
 {
 	//recorro desde el primer registro y mientras la clave sea menor o igual al hasta
 	//si ademas es mayor o igual al desde, la agrego al resultado.
 
 	RegsIterator it = this->m_registros.begin();
-	BKDClave* itClave = NULL;
+	BKDClaveMultiple* itClave = NULL;
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClave();
+		itClave = (*it)->GetClaveMultiple();
 		if (itClave->Comparar(claveFin) == 1)
 			break;
 
@@ -160,12 +160,12 @@ bool BKDNodoHoja::InsertarReg(const BKDRegistro& registro, bool& overflow)
 	//soy hoja, asi que inserto en el orden correspondiente, y si me pase de la capacidad tiro overflow
 
 	RegsIterator it = this->m_registros.begin();
-	BKDClave* regClave = registro.GetClave();
-	BKDClave* itClave = NULL;
+	BKDClaveMultiple* regClave = registro.GetClaveMultiple();
+	BKDClaveMultiple* itClave = NULL;
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClave();
+		itClave = (*it)->GetClaveMultiple();
 
 		if (itClave->Comparar(*regClave) == 1)
 			break;

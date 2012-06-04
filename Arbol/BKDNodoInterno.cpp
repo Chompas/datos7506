@@ -76,12 +76,10 @@ int BKDNodoInterno::CantidadAMover()
 	return ((this->m_capacidad / 2) + 1); //+ 1 xq copio el hijo y la clave a promover
 }
 
-bool BKDNodoInterno::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
+bool BKDNodoInterno::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro)
 {
 	//** PARA CLAVE MULTIPLE:
-	// BKDClave* subclave = clave->GetSubclave(profundidad % clave->GetDimension())
-	//while ... (*ci)->Comparar(subclave) != 1
-	//************************
+	BKDClave* subclave = clave.GetSubclave(4 % clave.GetDimension());
 
 	//Recorro en orden las claves hasta encontrar la primera mayor o igual.
 	//Si llegue al final, continuo por el ultimo hijo.
@@ -89,7 +87,7 @@ bool BKDNodoInterno::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 	HijosIterator hi = this->m_hijos.begin();
 	ClavesIterator ci = this->m_claves.begin();
 
-	while (ci != this->m_claves.end() && (*ci)->Comparar(clave) != 1)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(*subclave) != 1)
 	{
 		ci++;
 		hi++;
@@ -115,8 +113,11 @@ bool BKDNodoInterno::BuscarReg(const BKDClave& clave, BKDRegistro** registro)
 	return res;
 }
 
-bool BKDNodoInterno::BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado)
+bool BKDNodoInterno::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado)
 {
+	BKDClave* subclaveInicio = claveInicio.GetSubclave(4 % claveInicio.GetDimension());
+	BKDClave* subclaveFin = claveFin.GetSubclave(4 % claveFin.GetDimension());
+
 	//recorro mis claves, desde la primera mayor o igual a mi desde, y corto cuando encuentro la primera mayor a mi hasta.
 	//en cada hijo de la clave en la que estoy parado, llamo de vuelta al metodo buscar Rango.
 
@@ -124,19 +125,19 @@ bool BKDNodoInterno::BuscarRango(const BKDClave& claveInicio, const BKDClave& cl
 	HijosIterator hi = this->m_hijos.begin();
 	bool enIzquierdos = true;
 
-	while (ci != this->m_claves.end() && (*ci)->Comparar(claveInicio) == -1)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(*subclaveInicio) == -1)
 	{
 		ci++;
 		hi++;
 	}
 
-	if ((*ci)->Comparar(claveInicio) == 0)
+	if ((*ci)->Comparar(*subclaveInicio) == 0)
 	{
 		hi++;
 		enIzquierdos = false;
 	}
 
-	while (ci != this->m_claves.end() && (*ci)->Comparar(claveFin) != 1)
+	while (ci != this->m_claves.end() && (*ci)->Comparar(*subclaveFin) != 1)
 	{
 		BKDNodo* hijo = this->m_manager->GetNodo(*hi);
 
@@ -179,9 +180,12 @@ bool BKDNodoInterno::InsertarReg(const BKDRegistro& registro, bool& overflow)
 	//soy nodo interno, primero busco el hijo al cual le corresponde la clave
 	HijosIterator hi = this->m_hijos.begin();
 	ClavesIterator ci = this->m_claves.begin();
-	BKDClave* regClave = registro.GetClave();
+	BKDClaveMultiple* regClave = registro.GetClaveMultiple();
 
-	while (ci != this->m_claves.end() && (*ci)->Comparar(*regClave) != 1)
+	BKDClave* subclave = regClave->GetSubclave(4 % regClave->GetDimension());
+
+
+	while (ci != this->m_claves.end() && (*ci)->Comparar(*subclave) != 1)
 	{
 		ci++;
 		hi++;

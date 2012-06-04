@@ -28,8 +28,8 @@ public:
 	virtual bool HayUnderflow();
 	virtual int CantidadAMover(); //Indica la cantidad de claves que se deberían mover del nodo en overflow al nuevo hermano derecho
 
-	virtual bool BuscarReg(const BKDClave& clave, BKDRegistro** registro);
-	virtual bool BuscarRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado);
+	virtual bool BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro);
+	virtual bool BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado);
 
 	virtual bool InsertarReg(const BKDRegistro& registro, bool& overflow);
 	virtual bool ModificarReg(const BKDRegistro& registro);

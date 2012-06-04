@@ -35,13 +35,14 @@ public:
 	// -1: this < clave
 	//  0: this == clave
 	//  1: this > clave
-	virtual int Comparar(const BKDClaveMultiple& clave) = 0;
+	virtual int Comparar(const BKDClaveMultiple& clave) const = 0;
 	//virtual int CompararPorSubclave(const BKDClaveMultiple& clave, const int dimension) = 0;
 	//virtual int CompararContraSubclave(const BKDClave& subclave, const int dimension) = 0;
 
 	//!! Eliminar la memoria al terminar de usar la subclave !!
-	//virtual BKDClave* GetSubclave(int dimension) = 0;
-	virtual int GetDimension() = 0;
+	virtual BKDClave* GetSubclave(int dimension) const = 0;
+	virtual int GetDimension() const = 0;
+	virtual std::string ToString() const = 0;
 
 
 };

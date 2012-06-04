@@ -23,7 +23,7 @@ public:
 	static IndiceDatos* Abrir(const std::string filePath, int tamanioBloque);
 
 	Incidente BuscarIncidente(Incidente incidente);
-	std::list<Incidente> BuscarPorRango(int formacionMin, int formacionMax);
+	std::list<Incidente> BuscarPorRango(Incidente incidenteMin, Incidente incidenteMax);
 
 	bool InsertarIncidente(Incidente incidente);
 	bool ModificarIncidente(Incidente incidente);

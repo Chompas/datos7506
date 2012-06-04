@@ -43,7 +43,7 @@ int ClaveLinea::Comparar(const BKDClave& clave) const
 	if (this->Valor == 0) {
 		retVal = 0;
 	} else {
-		IndicesManager *indiceLinea = new IndicesManager("Archivos/linea.txt");
+		IndicesManager *indiceLinea = new IndicesManager("Archivos/lineas.txt");
 		claveLineaStr = indiceLinea->obtenerValor(this->Valor);
 		claveLineaStrAComp = indiceLinea->obtenerValor(c->Valor);
 	}

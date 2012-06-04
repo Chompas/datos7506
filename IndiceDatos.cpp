@@ -9,6 +9,7 @@
 
 #include <iostream>
 #include "Claves/InstanciadorIncidentes.h"
+#include "Claves/ClaveIncidente.h"
 
 
 using namespace std;
@@ -47,7 +48,8 @@ IndiceDatos* IndiceDatos::Abrir(std::string filePath, int tamanioBloque)
 Incidente IndiceDatos::BuscarIncidente(Incidente incidente)
 {
 	BKDRegistro* inPtr;
-	ClaveInt clave = ClaveInt(incidente.formacion);
+	//ClaveInt clave = ClaveInt(incidente.formacion);
+	ClaveIncidente clave = ClaveIncidente(incidente);
 
 	if (!this->m_arbolBKD->BuscarRegistro(clave, &inPtr))
 		return Incidente();
@@ -59,12 +61,12 @@ Incidente IndiceDatos::BuscarIncidente(Incidente incidente)
 	}
 }
 
-std::list<Incidente> IndiceDatos::BuscarPorRango(int formacionMin, int formacionMax)
+std::list<Incidente> IndiceDatos::BuscarPorRango(Incidente incidenteMin, Incidente incidenteMax)
 {
 	list<BKDRegistro*> outList;
 	list<Incidente> result;
-	ClaveInt claveMin = ClaveInt(formacionMin);
-	ClaveInt claveMax = ClaveInt(formacionMax);
+	ClaveIncidente claveMin = ClaveIncidente(incidenteMin);
+	ClaveIncidente claveMax = ClaveIncidente(incidenteMax);
 
 	if (!this->m_arbolBKD->BuscarPorRango(claveMin, claveMax, outList))
 		return result;

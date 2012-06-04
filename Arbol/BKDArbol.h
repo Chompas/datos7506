@@ -26,8 +26,8 @@ public:
 	static BKDArbol* CrearEnDisco(const std::string& filePath, const int tamanioBloqueBytes, BKDInstanciador* instanciadorRegistros); //Para rendimiento optimo utilizar bloques de 512 * 2^N Bytes
 	static BKDArbol* AbrirDeDisco(const std::string& filePath, BKDInstanciador* instanciadorRegistros);
 
-	bool BuscarRegistro(const BKDClave& clave, BKDRegistro** registro);
-	bool BuscarPorRango(const BKDClave& claveInicio, const BKDClave& claveFin, std::list<BKDRegistro*>& resultado);
+	bool BuscarRegistro(const BKDClaveMultiple& clave, BKDRegistro** registro);
+	bool BuscarPorRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado);
 
 	bool InsertarRegistro(const BKDRegistro& registro);
 	bool ModificarRegistro(const BKDRegistro& registro);
