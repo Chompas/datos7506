@@ -8,6 +8,7 @@
 #include "ClaveFalla.h"
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include "../Disco/IndicesManager.h"
 
 using namespace std;
@@ -15,6 +16,19 @@ using namespace std;
 ClaveFalla::ClaveFalla(const int& falla)
 	: ClaveInt(falla)
 { }
+
+string ClaveFalla::ToString() const {
+
+	string valorStr;
+	IndicesManager *indiceLinea = new IndicesManager("Archivos/fallas.txt");
+	valorStr = indiceLinea->obtenerValor(this->Valor);
+	delete indiceLinea;
+
+	stringstream ss;
+	ss << valorStr;
+	string result = ss.str();
+	return result;
+}
 
 // -1: this < clave
 //  0: this == clave

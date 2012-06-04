@@ -18,6 +18,7 @@ public:
 	ClaveAccidente(const int& accidente);
 
 	virtual int Comparar(const BKDClave& clave) const;
+	virtual string ToString() const;
 };
 
 } /* namespace std */

@@ -46,6 +46,7 @@ public:
 	virtual BKDClave* GetClave() const;
 	virtual BKDClaveMultiple* GetClaveMultiple() const;
 	virtual std::string ToString() const;
+	virtual std::string ToStringClaves() const;
 	virtual BKDRegistro* Clonar() const;
 
 };

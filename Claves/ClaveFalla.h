@@ -18,6 +18,7 @@ public:
 	ClaveFalla(const int& falla);
 
 	virtual int Comparar(const BKDClave& clave) const;
+	virtual string ToString() const;
 };
 
 } /* namespace std */

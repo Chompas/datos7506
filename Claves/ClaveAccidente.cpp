@@ -8,6 +8,7 @@
 #include "ClaveAccidente.h"
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include "../Disco/IndicesManager.h"
 
 namespace std {
@@ -15,6 +16,19 @@ namespace std {
 ClaveAccidente::ClaveAccidente(const int& accidente)
 	: ClaveInt(accidente)
 { }
+
+string ClaveAccidente::ToString() const {
+
+	string valorStr;
+	IndicesManager *indiceLinea = new IndicesManager("Archivos/accidentes.txt");
+	valorStr = indiceLinea->obtenerValor(this->Valor);
+	delete indiceLinea;
+
+	stringstream ss;
+	ss << valorStr;
+	string result = ss.str();
+	return result;
+}
 
 // -1: this < clave
 //  0: this == clave

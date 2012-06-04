@@ -8,6 +8,7 @@
 #include "ClaveLinea.h"
 #include <iostream>
 #include <cstring>
+#include <sstream>
 #include "../Disco/IndicesManager.h"
 
 using namespace std;
@@ -16,6 +17,19 @@ using namespace std;
 ClaveLinea::ClaveLinea(const int& linea)
 	: ClaveInt(linea)
 { }
+
+string ClaveLinea::ToString() const {
+
+	string valorStr;
+	IndicesManager *indiceLinea = new IndicesManager("Archivos/lineas.txt");
+	valorStr = indiceLinea->obtenerValor(this->Valor);
+	delete indiceLinea;
+
+	stringstream ss;
+	ss << valorStr;
+	string result = ss.str();
+	return result;
+}
 
 
 // -1: this < clave

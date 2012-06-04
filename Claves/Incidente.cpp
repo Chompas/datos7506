@@ -232,6 +232,45 @@ BKDClaveMultiple* Incidente::GetClaveMultiple() const {
 
 std::string Incidente::ToString() const
 {
+	string fallaStr;
+	IndicesManager *indiceFalla = new IndicesManager("Archivos/fallas.txt");
+	fallaStr = indiceFalla->obtenerValor(falla);
+	delete indiceFalla;
+
+	string accidenteStr;
+	IndicesManager *indiceAccidente = new IndicesManager("Archivos/accidentes.txt");
+	accidenteStr = indiceAccidente->obtenerValor(accidente);
+	delete indiceAccidente;
+
+	string lineaStr;
+	IndicesManager *indiceLinea = new IndicesManager("Archivos/lineas.txt");
+	lineaStr = indiceLinea->obtenerValor(linea);
+	delete indiceLinea;
+
+
+	stringstream ss;
+	ss << " [";
+	ss << "('";
+	ss << lineaStr;
+	ss << "') , ";
+	ss << "('";
+	ss << this->horario;
+	ss << "') , ";
+	ss << "('";
+	ss << fallaStr;
+	ss << "') , ";
+	ss << "('";
+	ss << accidenteStr;
+	ss << "') , ";
+	ss << "('";
+	ss << this->formacion;
+	ss << "')";
+	ss << "] ";
+
+	return ss.str();
+}
+
+std::string Incidente::ToStringClaves() const {
 	stringstream ss;
 	ss << " [";
 	ss << "('";
