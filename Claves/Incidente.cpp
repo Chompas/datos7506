@@ -17,6 +17,7 @@
 #include <time.h>
 #include <stdlib.h>
 #include <string.h>
+#include "ClaveIncidente.h"
 
 Incidente::Incidente()
 {
@@ -225,16 +226,29 @@ BKDClave* Incidente::GetClave() const
 	return new ClaveInt(this->formacion);
 }
 
+BKDClaveMultiple* Incidente::GetClaveMultiple() const {
+	return new ClaveIncidente(this);
+}
+
 std::string Incidente::ToString() const
 {
 	stringstream ss;
 	ss << " [";
 	ss << "('";
-	ss << this->formacion;
-	ss << "') , ";
-	ss << "(";
 	ss << this->linea;
-	ss << ")";
+	ss << "') , ";
+	ss << "('";
+	ss << this->horario;
+	ss << "') , ";
+	ss << "('";
+	ss << this->falla;
+	ss << "') , ";
+	ss << "('";
+	ss << this->accidente;
+	ss << "') , ";
+	ss << "('";
+	ss << this->formacion;
+	ss << "')";
 	ss << "] ";
 
 	return ss.str();

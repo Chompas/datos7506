@@ -7,6 +7,9 @@
 
 #include "ClaveIncidente.h"
 #include "ClaveInt.h"
+#include "ClaveAccidente.h"
+#include "ClaveFalla.h"
+#include "ClaveLinea.h"
 #include <vector>
 #include <stdio.h>
 #include <string.h>
@@ -23,13 +26,13 @@ ClaveIncidente::ClaveIncidente(Incidente& incidente)
 {
 
 	//Inserto en orden las claves en el vector
-	ClaveInt *claveLinea =  new ClaveInt(incidente.linea);
+	ClaveLinea *claveLinea =  new ClaveLinea(incidente.linea);
 	this->m_subclaves.push_back(claveLinea);
 	ClaveInt *claveHorario = new ClaveInt(incidente.horario);
 	this->m_subclaves.push_back(claveHorario);
-	ClaveInt *claveFalla = new ClaveInt(incidente.falla);
+	ClaveFalla *claveFalla = new ClaveFalla(incidente.falla);
 	this->m_subclaves.push_back(claveFalla);
-	ClaveInt *claveAccidente = new ClaveInt(incidente.accidente);
+	ClaveAccidente *claveAccidente = new ClaveAccidente(incidente.accidente);
 	this->m_subclaves.push_back(claveAccidente);
 	ClaveInt *claveFormacion = new ClaveInt(incidente.formacion);
 	this->m_subclaves.push_back(claveFormacion);
@@ -100,5 +103,11 @@ int ClaveIncidente::serializar (Buffer* buffer, int posicion){
 }
 
 int ClaveIncidente::hidratar (Buffer* buffer, int posicion){
+	//TO DO
+	return 0;
+}
+
+int ClaveIncidente::getLongitud() {
+	//TO DO
 	return 0;
 }

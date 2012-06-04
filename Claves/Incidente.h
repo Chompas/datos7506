@@ -44,6 +44,7 @@ public:
 
 	//!! Importante: La memoria debe ser liberada por el usuario !!
 	virtual BKDClave* GetClave() const;
+	virtual BKDClaveMultiple* GetClaveMultiple() const;
 	virtual std::string ToString() const;
 	virtual BKDRegistro* Clonar() const;
 
