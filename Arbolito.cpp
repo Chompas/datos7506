@@ -83,7 +83,11 @@ void busquedaPorTeclado() {
 
 		//ACA HAY QUE AGREGAR LA LLAMADA A LA BUSQUEDA DE INCIDENTE Y PASAR unIncidente
 
-		Incidente result(indice->BuscarIncidente(*unIncidente));
+		//Incidente result(indice->BuscarIncidente(*unIncidente));
+
+		//cout << indice->BuscarIncidente(*unIncidente).ToString() << endl;
+		//Incidente *unIncidente2 = new Incidente("Urquiza;2011-03-15T18:26:09;frena_50;no_enciende;10");
+		indice->BuscarPorRango(*unIncidente, *unIncidente);
 
 
 
@@ -99,9 +103,8 @@ void busquedaPorTeclado() {
 		cin >> fechaFinal;
 
 		//Creo el incidente
-		Incidente *unIncidente = new Incidente(incidente);
-		//Modifico la clave horario a -1 para saber que se busca por rango
-		unIncidente->horario = -1;
+		Incidente *incidenteMin = new Incidente(incidente);
+		Incidente *incidenteMax = new Incidente(incidente);
 
 		//Convierto los horarios a timestamp
 		struct tm tm;
@@ -111,15 +114,19 @@ void busquedaPorTeclado() {
 		}
 
 		int horarioInicial = epoch;
+		cout << "Horario Inicial" << horarioInicial << endl;
+		incidenteMin->horario = horarioInicial;
 
 		if ( strptime(fechaFinal.c_str(), "%Y-%m-%dT%H:%M:%S", &tm) != NULL ) {
 			epoch = mktime(&tm);
 		}
 
 		int horarioFinal = epoch;
+		cout << "Horario Final" << horarioFinal << endl;
+		incidenteMax->horario = horarioFinal;
 
 		//ACA HAGO LA LLAMADA A LA BUSQUEDA PERO PASANDO unIncidente, horarioInicial, horarioFinal
-
+		indice->BuscarPorRango(*incidenteMin, *incidenteMax);
 
 	}
 
@@ -131,7 +138,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		//***********************
-		return Pruebas::PruebaArbolB2();
+		//return Pruebas::PruebaArbolB2();
 		//***********************
 
 		indice = IndiceDatos::Crear("treeTest.UBA", 512);

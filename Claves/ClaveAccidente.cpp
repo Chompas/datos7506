@@ -53,24 +53,26 @@ int ClaveAccidente::Comparar(const BKDClave& clave) const
 	//Eso se usa unicamente para las busquedas
 	string claveAccidenteStr;
 	string claveAccidenteStrAComp;
-	if (this->Valor == 0) {
+	if (c->Valor == 0) {
 		retVal = 0;
 	} else {
 		IndicesManager *indiceAccidente = new IndicesManager("Archivos/accidentes.txt");
 		claveAccidenteStr = indiceAccidente->obtenerValor(this->Valor);
 		claveAccidenteStrAComp = indiceAccidente->obtenerValor(c->Valor);
-	}
 
-	//Chequeo si la lineaClaveAComp existia en el archivo
-	if (claveAccidenteStrAComp == "0") {
-		//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
-		retVal = -1;
-	} else if (claveAccidenteStr.compare(claveAccidenteStrAComp) < 0)
-		retVal = -1;
-	else if (claveAccidenteStr.compare(claveAccidenteStrAComp) == 0)
-		retVal = 0;
-	else
-		retVal = 1;
+
+		//Chequeo si la lineaClaveAComp existia en el archivo
+		if (claveAccidenteStrAComp == "0") {
+			//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
+			retVal = -1;
+		} else if (claveAccidenteStr.compare(claveAccidenteStrAComp) < 0)
+			retVal = -1;
+		else if (claveAccidenteStr.compare(claveAccidenteStrAComp) == 0)
+			retVal = 0;
+		else
+			retVal = 1;
+
+	}
 
 	return retVal;
 }

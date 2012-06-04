@@ -42,7 +42,7 @@ int ClaveInt::Comparar(const BKDClave& clave) const
 
 	if (this->Valor < c->Valor)
 		return -1;
-	else if (this->Valor == c->Valor)
+	else if ((this->Valor == c->Valor) || (c->Valor == 0))
 		return 0;
 	else
 		return 1;

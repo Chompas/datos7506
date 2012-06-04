@@ -68,14 +68,22 @@ std::list<Incidente> IndiceDatos::BuscarPorRango(Incidente incidenteMin, Inciden
 	ClaveIncidente claveMin = ClaveIncidente(incidenteMin);
 	ClaveIncidente claveMax = ClaveIncidente(incidenteMax);
 
-	if (!this->m_arbolBKD->BuscarPorRango(claveMin, claveMax, outList))
+	if (!this->m_arbolBKD->BuscarPorRango(claveMin, claveMax, outList)) {
+
+		cout << "No hay Incidentes para ese criterio de busqueda" << endl;
+
 		return result;
+	}
 	else
 	{
+
+		cout << "Incidentes Encontrados: " << endl;
+
 		for(std::list<BKDRegistro*>::iterator it = outList.begin(); it != outList.end(); it++)
 		{
 			Incidente res = Incidente(*(Incidente*)(*it));
 			result.push_back(res);
+			cout << res.ToString() << endl;
 			delete *it;
 			*it = NULL;
 		}

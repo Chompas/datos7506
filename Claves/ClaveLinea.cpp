@@ -54,24 +54,26 @@ int ClaveLinea::Comparar(const BKDClave& clave) const
 	//Eso se usa unicamente para las busquedas
 	string claveLineaStr;
 	string claveLineaStrAComp;
-	if (this->Valor == 0) {
+	if (c->Valor == 0) {
 		retVal = 0;
 	} else {
 		IndicesManager *indiceLinea = new IndicesManager("Archivos/lineas.txt");
 		claveLineaStr = indiceLinea->obtenerValor(this->Valor);
 		claveLineaStrAComp = indiceLinea->obtenerValor(c->Valor);
-	}
 
-	//Chequeo si la claveLineaStrAComp existia en el archivo
-	if (claveLineaStrAComp == "0") {
-		//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
-		retVal = -1;
-	} else if (claveLineaStr.compare(claveLineaStrAComp) < 0)
-		retVal = -1;
-	else if (claveLineaStr.compare(claveLineaStrAComp) == 0)
-		retVal = 0;
-	else
-		retVal = 1;
+
+		//Chequeo si la claveLineaStrAComp existia en el archivo
+		if (claveLineaStrAComp == "0") {
+			//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
+			retVal = -1;
+		} else if (claveLineaStr.compare(claveLineaStrAComp) < 0)
+			retVal = -1;
+		else if (claveLineaStr.compare(claveLineaStrAComp) == 0)
+			retVal = 0;
+		else
+			retVal = 1;
+
+	}
 
 	return retVal;
 }

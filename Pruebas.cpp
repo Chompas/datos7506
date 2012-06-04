@@ -86,7 +86,7 @@ namespace Pruebas
 				return -1;
 			}
 
-			Incidente reg2 = Incidente("Belgrano_norte;2010-10-22T12:09:25;motores_al_80;desacoplado;25");
+			Incidente reg2 = Incidente("Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;16");
 
 			if (!arbol->InsertarRegistro(reg2))
 			{
@@ -95,7 +95,7 @@ namespace Pruebas
 				return -1;
 			}
 
-			Incidente reg3 = Incidente("Urquiza;2011-03-15T18:26:09;frena_50;no_enciende;10");
+			Incidente reg3 = Incidente("Mitre;2011-10-2T13:12:45;no_cierra_puertas;incendio;17");
 
 			if (!arbol->InsertarRegistro(reg3))
 			{
@@ -170,8 +170,8 @@ namespace Pruebas
 
 		//ClaveInt claveInicio = ClaveInt(0);
 		//ClaveInt claveFin = ClaveInt(500);
-		Incidente regInicio = Incidente("Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;15");
-		Incidente regFin = Incidente("Urquiza;2011-03-15T18:26:09;frena_50;no_enciende;10");
+		Incidente regInicio = Incidente("Mitre;-;no_cierra_puertas;-;-");
+		Incidente regFin = Incidente("Mitre;-;no_cierra_puertas;-;-");
 		ClaveIncidente claveInicio = ClaveIncidente(regInicio);
 		ClaveIncidente claveFin = ClaveIncidente(regFin);
 

@@ -52,24 +52,26 @@ int ClaveFalla::Comparar(const BKDClave& clave) const
 	//Eso se usa unicamente para las busquedas
 	string claveFallaStr;
 	string claveFallaStrAComp;
-	if (this->Valor == 0) {
+	if (c->Valor == 0) {
 		retVal = 0;
 	} else {
 		IndicesManager *indiceFallas = new IndicesManager("Archivos/fallas.txt");
 		claveFallaStr = indiceFallas->obtenerValor(this->Valor);
 		claveFallaStrAComp = indiceFallas->obtenerValor(c->Valor);
-	}
 
-	//Chequeo si la lineaClaveAComp existia en el archivo
-	if (claveFallaStrAComp == "0") {
-		//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
-		retVal = -1;
-	} else if (claveFallaStr.compare(claveFallaStrAComp) < 0)
-		retVal = -1;
-	else if (claveFallaStr.compare(claveFallaStrAComp) == 0)
-		retVal = 0;
-	else
-		retVal = 1;
+
+		//Chequeo si la lineaClaveAComp existia en el archivo
+		if (claveFallaStrAComp == "0") {
+			//No existia la clave, devuelvo -1 para llevar la busqueda a un nodo incorrecto
+			retVal = -1;
+		} else if (claveFallaStr.compare(claveFallaStrAComp) < 0)
+			retVal = -1;
+		else if (claveFallaStr.compare(claveFallaStrAComp) == 0)
+			retVal = 0;
+		else
+			retVal = 1;
+
+	}
 
 	return retVal;
 }
