@@ -341,7 +341,7 @@ BKDRegistro* BKDManagerDisco::InstanciarRegistro()
 	return this->m_instanciador->InstanciarRegistro();
 }
 
-BKDClave* BKDManagerDisco::InstanciarClave()
+BKDClaveMultiple* BKDManagerDisco::InstanciarClave()
 {
 	return this->m_instanciador->InstanciarClave();
 }

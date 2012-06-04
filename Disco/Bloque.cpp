@@ -137,6 +137,8 @@
 				actualizarEspacioLibre (calcularEspacioLibre ());
 				exito = true;
 			}
+			else
+				Utils::LogError(Utils::errSS << "No se puede insertar registro, no hay espacio suficiente en el bloque");
 
 			return exito;
 		}
@@ -350,8 +352,12 @@
 
 					int longitudRegistro = registros[indiceReg]->getLongitud();
 
-					memcpy(ptr, &longitudRegistro, sizeof (int));
-					ptr += sizeof(int);
+					if (!this->RLF)
+					{
+						memcpy(ptr, &longitudRegistro, sizeof (int));
+						ptr += sizeof(int);
+					}
+
 					memcpy (ptr, streamRegistro, longitudRegistro);
 					ptr+= longitudRegistro;
 
@@ -467,7 +473,7 @@
 	{
 		int espacioAOcupar = registro->getLongitud();
 
-		if (this->RLF)
+		if (!this->RLF)
 			espacioAOcupar += LCCRLV;
 
 		return ((obtenerEspacioLibre() - espacioAOcupar) >= 0);

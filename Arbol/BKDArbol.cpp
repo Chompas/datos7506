@@ -61,7 +61,7 @@ bool BKDArbol::BuscarRegistro(const BKDClaveMultiple& clave, BKDRegistro** regis
 
 	if (raiz != NULL)
 	{
-		res = raiz->BuscarReg(clave, registro);
+		res = raiz->BuscarReg(clave, registro, 0);
 
 		delete raiz;
 	}
@@ -89,7 +89,7 @@ bool BKDArbol::BuscarPorRango(const BKDClaveMultiple& claveInicio, const BKDClav
 
 	if (raiz != NULL)
 	{
-		res = raiz->BuscarRango(claveInicio, claveFin, resultado);
+		res = raiz->BuscarRango(claveInicio, claveFin, resultado, 0);
 		delete raiz;
 	}
 
@@ -99,7 +99,7 @@ bool BKDArbol::BuscarPorRango(const BKDClaveMultiple& claveInicio, const BKDClav
 
 bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 {
-	BKDClave* claveReg = registro.GetClave();
+	BKDClaveMultiple* claveReg = registro.GetClave();
 
 	if (claveReg == NULL)
 	{
@@ -129,7 +129,7 @@ bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 	bool overflow = false;
 	bool ret = true;
 
-	ret = raiz->InsertarReg(registro, overflow);
+	ret = raiz->InsertarReg(registro, overflow, 0);
 
 	if (overflow)
 	{
@@ -137,7 +137,7 @@ bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 
 		BKDNodo* reemplazo = this->m_manager->AgregarNodo(raiz->GetNivel());
 
-		BKDClave* clavePromovida;
+		BKDClaveMultiple* clavePromovida;
 
 		BKDNodo* hermanoDer = raiz->ResolverOverflow(&clavePromovida);
 		raiz->ClonarNodo(reemplazo, false);
@@ -149,9 +149,10 @@ bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 			cerr << "Error al intentar guardar nuevo hijo izquierdo: " << reemplazo->GetNumeroNodo() << endl;
 		if (!this->m_manager->GuardarNodo(hermanoDer))
 			cerr << "Error al intentar guardar nuevo hijo derecho: " << hermanoDer->GetNumeroNodo() << endl;
+		/*
 		if (!this->m_manager->GuardarNodo(nuevaRaiz))
 			cerr << "Error al intentar guardar nueva raiz: " << nuevaRaiz->GetNumeroNodo() << endl;
-
+		*/
 		delete clavePromovida;
 		delete reemplazo;
 		delete hermanoDer;
@@ -162,7 +163,7 @@ bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 
 	delete raiz;
 
-	BKDClave* clave = registro.GetClave();
+	BKDClaveMultiple* clave = registro.GetClave();
 
 	if (!ret)
 		cerr << "Error al intentar insertar registro con clave = " << clave->ToString() << endl;

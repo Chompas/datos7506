@@ -21,6 +21,125 @@ BKDNodoHojaDisco::BKDNodoHojaDisco(BKDManager* manager,int nroNodo, int capacida
 				: BKDNodoHoja(manager, nroNodo, capacidad, nivel) { }
 
 
+
+
+bool BKDNodoHojaDisco::HayOverflow()
+{
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//acumulo reg siguiente hoja + registros datos
+
+	RegistroDeLongitudVariable* regSiguienteHoja = new RegistroDeLongitudVariable((char*)(&this->m_siguienteHoja), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regSiguienteHoja);
+	delete regSiguienteHoja;
+	regSiguienteHoja = NULL;
+
+	if (tamAcum > this->m_capacidad)
+		return true;
+
+
+	for (RegsIterator ri = this->m_registros.begin(); ri != this->m_registros.end(); ri++)
+	{
+		Buffer buff;
+		(*ri)->serializar(&buff, 0);
+
+		int tamDatosReg = 0;
+		char* datosReg = buff.getStream(tamDatosReg);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosReg, tamDatosReg);
+		delete[] datosReg;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+
+		if (tamAcum > this->m_capacidad)
+			return true;
+	}
+
+	return false;
+}
+
+bool BKDNodoHojaDisco::HayUnderflow()
+{
+	//si soy hoja y raiz, no tengo un minimo de registros, siempre puedo eliminar.
+	if (this->m_nivel == 0)
+		return false;
+
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//acumulo reg siguiente hoja + registros datos
+
+	RegistroDeLongitudVariable* regSiguienteHoja = new RegistroDeLongitudVariable((char*)(&this->m_siguienteHoja), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regSiguienteHoja);
+	delete regSiguienteHoja;
+	regSiguienteHoja = NULL;
+
+
+	for (RegsIterator ri = this->m_registros.begin(); ri != this->m_registros.end(); ri++)
+	{
+		Buffer buff;
+		(*ri)->serializar(&buff, 0);
+
+		int tamDatosReg = 0;
+		char* datosReg = buff.getStream(tamDatosReg);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosReg, tamDatosReg);
+		delete[] datosReg;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+	}
+
+	//tengo que asegurar tener al menos capacidad / 2 registros.
+	return (tamAcum < (this->m_capacidad / 2));
+
+}
+
+//Indica la cantidad de registros que se deberían mover del nodo en overflow al nuevo hermano derecho
+int BKDNodoHojaDisco::CantidadAMover()
+{
+	//recorro la lista de registros mientras la cant acumulada + nuevo dato sea menor a capacidad / 2
+	//cuando termino, corte porque tengo el maximo espacio ocupado menor a capacidad / 2 en el nodo original,
+	//y el resto lo voy a mover al nuevo nodo
+
+	int cant = 0;
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//primero sumo al acumulado el espacio ocupado por el puntero a la hoja siguiente
+	RegistroDeLongitudVariable* regSiguienteHoja = new RegistroDeLongitudVariable((char*)(&this->m_siguienteHoja), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regSiguienteHoja);
+	delete regSiguienteHoja;
+	regSiguienteHoja = NULL;
+
+	if (tamAcum > (this->m_capacidad / 2))
+		cant++;
+
+	for (RegsIterator ri = this->m_registros.begin(); ri != this->m_registros.end(); ri++)
+	{
+		Buffer buff;
+		(*ri)->serializar(&buff, 0);
+
+		int tamDatosReg = 0;
+		char* datosReg = buff.getStream(tamDatosReg);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosReg, tamDatosReg);
+		delete[] datosReg;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+
+		if (tamAcum > (this->m_capacidad / 2))
+			cant++;
+	}
+
+	return cant;
+}
+
+
+
 bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 {
 	Utils::LogDebug(Utils::dbgSS << "Intentando escribir nodo Hoja a bloque en memoria...");
@@ -79,6 +198,16 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 		delete[] datosReg;
 
 		Utils::LogDebug(Utils::dbgSS << "Intentando insertar datos del registro en el bloque...");
+		if (!bloque->entra(regV))
+		{
+			UT::LogError(UT::errSS << "Error al intentar escribir nodo hoja "
+								   << this->m_nro_nodo
+								   << " al bloque: espacio insuficiente para insertar registro de datos en la posicion "
+								   << idx);
+			delete regV;
+			return false;
+		}
+
 		if (!bloque->insertarRegistro(regV))
 		{
 			UT::LogError(UT::errSS << "Error al intentar escribir nodo hoja "

@@ -6,11 +6,17 @@
  */
 
 #include "BKDNodoHoja.h"
+
 #include <iostream>
+
+#include "../Comun/Utils.h"
+
 
 using namespace std;
 
+
 typedef list<BKDRegistro*>::iterator RegsIterator;
+
 
 
 BKDNodoHoja::~BKDNodoHoja()
@@ -78,7 +84,7 @@ int BKDNodoHoja::CantidadAMover()
 	return (this->m_capacidad / 2);
 }
 
-bool BKDNodoHoja::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro)
+bool BKDNodoHoja::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro, int profundidad)
 {
 	//recorro en orden de claves, si existe lleno el registro
 
@@ -87,7 +93,7 @@ bool BKDNodoHoja::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registr
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClaveMultiple();
+		itClave = (*it)->GetClave();
 
 		if (itClave->Comparar(clave) != -1)
 			break;
@@ -124,7 +130,7 @@ bool BKDNodoHoja::BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registr
 }
 
 
-bool BKDNodoHoja::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado)
+bool BKDNodoHoja::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado, int profundidad)
 {
 	//recorro desde el primer registro y mientras la clave sea menor o igual al hasta
 	//si ademas es mayor o igual al desde, la agrego al resultado.
@@ -134,7 +140,7 @@ bool BKDNodoHoja::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClav
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClaveMultiple();
+		itClave = (*it)->GetClave();
 		if (itClave->Comparar(claveFin) == 1)
 			break;
 
@@ -155,17 +161,17 @@ bool BKDNodoHoja::BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClav
 }
 
 
-bool BKDNodoHoja::InsertarReg(const BKDRegistro& registro, bool& overflow)
+bool BKDNodoHoja::InsertarReg(const BKDRegistro& registro, bool& overflow, int profundidad)
 {
 	//soy hoja, asi que inserto en el orden correspondiente, y si me pase de la capacidad tiro overflow
 
 	RegsIterator it = this->m_registros.begin();
-	BKDClaveMultiple* regClave = registro.GetClaveMultiple();
+	BKDClaveMultiple* regClave = registro.GetClave();
 	BKDClaveMultiple* itClave = NULL;
 
 	while(it != this->m_registros.end())
 	{
-		itClave = (*it)->GetClaveMultiple();
+		itClave = (*it)->GetClave();
 
 		if (itClave->Comparar(*regClave) == 1)
 			break;
@@ -189,26 +195,26 @@ bool BKDNodoHoja::InsertarReg(const BKDRegistro& registro, bool& overflow)
 	if (!overflow)
 		if(!this->m_manager->GuardarNodo(this))
 		{
-			cerr << "Error al intentar guardar nodo hoja: " << this->m_nro_nodo << endl;
+			Utils::LogError(Utils::errSS << "Error al intentar guardar nodo hoja: " << this->m_nro_nodo);
 			return false;
 		}
 
 	return !overflow;
 }
 
-bool BKDNodoHoja::ModificarReg(const BKDRegistro& registro)
+bool BKDNodoHoja::ModificarReg(const BKDRegistro& registro, int profundidad)
 {
 	return false;
 }
 
-bool BKDNodoHoja::EliminarReg(const BKDClave& clave)
+bool BKDNodoHoja::EliminarReg(const BKDClaveMultiple& clave, int profundidad)
 {
 	return false;
 }
 
 //Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 //Ante un error, devuelve NULL como retorno
-BKDNodo* BKDNodoHoja::ResolverOverflow(BKDClave** clavePromovida)
+BKDNodo* BKDNodoHoja::ResolverOverflow(BKDClaveMultiple** clavePromovida)
 {
 	//verifico que estoy en condicion de overflow
 	if (!this->HayOverflow())

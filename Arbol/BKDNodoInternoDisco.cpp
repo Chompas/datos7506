@@ -13,13 +13,172 @@
 
 namespace UT = Utils;
 
-typedef list<BKDClave*>::iterator ClavesIterator;
+typedef list<BKDClaveMultiple*>::iterator ClavesIterator;
 typedef list<int>::iterator HijosIterator;
 
 
 
 BKDNodoInternoDisco::BKDNodoInternoDisco(BKDManager* manager,int nroNodo, int capacidad, int nivel)
 				: BKDNodoInterno(manager, nroNodo, capacidad, nivel) { }
+
+
+
+
+
+bool BKDNodoInternoDisco::HayOverflow()
+{
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//acumulo registro cantidad hijos + registros hijos + registro cantidad Claves + registros claves
+
+	int cantHijos = this->m_hijos.size();
+	RegistroDeLongitudVariable* regCantHijos = new RegistroDeLongitudVariable((char*)(&cantHijos), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regCantHijos);
+	delete regCantHijos;
+	regCantHijos = NULL;
+
+	if (tamAcum > this->m_capacidad)
+		return true;
+
+	for (HijosIterator hi = this->m_hijos.begin(); hi != this->m_hijos.end(); hi++)
+	{
+		RegistroDeLongitudVariable* regHijo = new RegistroDeLongitudVariable((char*)(&(*hi)), sizeof(int));
+		tamAcum += md->CalcularEspacioAOcupar(regHijo);
+		delete regHijo;
+		regHijo = NULL;
+
+		if (tamAcum > this->m_capacidad)
+			return true;
+	}
+
+	int cantClaves = this->m_claves.size();
+	RegistroDeLongitudVariable* regCantClaves = new RegistroDeLongitudVariable((char*)(&cantClaves), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regCantClaves);
+	delete regCantClaves;
+	regCantClaves = NULL;
+
+	if (tamAcum > this->m_capacidad)
+		return true;
+
+	for (ClavesIterator ci = this->m_claves.begin(); ci != this->m_claves.end(); ci++)
+	{
+		Buffer buff;
+		(*ci)->serializar(&buff, 0);
+
+		int tamDatosClave = 0;
+		char* datosClave = buff.getStream(tamDatosClave);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosClave, tamDatosClave);
+		delete[] datosClave;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+
+		if (tamAcum > this->m_capacidad)
+			return true;
+	}
+
+	return false;
+}
+
+bool BKDNodoInternoDisco::HayUnderflow()
+{
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//acumulo reg cant hijos + registros hijos + reg cant claves + regs claves
+
+	int cantHijos = this->m_hijos.size();
+	RegistroDeLongitudVariable* regCantHijos = new RegistroDeLongitudVariable((char*)(&cantHijos), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regCantHijos);
+	delete regCantHijos;
+	regCantHijos = NULL;
+
+	for (HijosIterator hi = this->m_hijos.begin(); hi != this->m_hijos.end(); hi++)
+	{
+		RegistroDeLongitudVariable* regHijo = new RegistroDeLongitudVariable((char*)(&(*hi)), sizeof(int));
+		tamAcum += md->CalcularEspacioAOcupar(regHijo);
+		delete regHijo;
+		regHijo = NULL;
+	}
+
+	int cantClaves = this->m_claves.size();
+	RegistroDeLongitudVariable* regCantClaves = new RegistroDeLongitudVariable((char*)(&cantClaves), sizeof(int));
+	tamAcum += md->CalcularEspacioAOcupar(regCantClaves);
+	delete regCantClaves;
+	regCantClaves = NULL;
+
+
+	for (ClavesIterator ci = this->m_claves.begin(); ci != this->m_claves.end(); ci++)
+	{
+		Buffer buff;
+		(*ci)->serializar(&buff, 0);
+
+		int tamDatosClave = 0;
+		char* datosClave = buff.getStream(tamDatosClave);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosClave, tamDatosClave);
+		delete[] datosClave;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+	}
+
+	//tengo que asegurar tener al menos capacidad / 2 registros.
+		return (tamAcum < (this->m_capacidad / 2));
+}
+
+//Indica la cantidad de registros que se deberían mover del nodo en overflow al nuevo hermano derecho
+int BKDNodoInternoDisco::CantidadAMover()
+{
+	//recorro la lista de claves mientras la cant acumulada + cada par(clave, hijoIzq) sea menor a capacidad / 2
+	//cuando termino, corte porque tengo el maximo espacio ocupado menor a capacidad / 2 en el nodo original,
+	//y el resto lo voy a mover al nuevo nodo. (La ultima clave copiada en realidad no va a ocupar espacio porque
+	//va a ser la clave promovida al nivel superior.
+
+	int cant = 0;
+	unsigned int tamAcum = 0;
+	BKDManagerDisco* md = (BKDManagerDisco*)this->m_manager;
+
+	//primero sumo al acumulado el espacio ocupado por las cantidades de hijos y claves.
+	//uso cualquier dato int para calcular el tamanio final del registro, y multiplico por 2...
+	RegistroDeLongitudVariable* regCant = new RegistroDeLongitudVariable((char*)(&cant), sizeof(int));
+	tamAcum += 2 * (md->CalcularEspacioAOcupar(regCant));
+	delete regCant;
+	regCant = NULL;
+
+
+	//ahora voy recorriendo de a pares (clave, hijoIzq) y cuento cuantos se pasan del limite de capacidad / 2
+
+	HijosIterator hi = this->m_hijos.begin();
+
+	for (ClavesIterator ci = this->m_claves.begin(); ci != this->m_claves.end(); ci++, hi++)
+	{
+		Buffer buff;
+		(*ci)->serializar(&buff, 0);
+
+		int tamDatosClave = 0;
+		char* datosClave = buff.getStream(tamDatosClave);
+
+		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable(datosClave, tamDatosClave);
+		delete[] datosClave;
+
+		tamAcum += md->CalcularEspacioAOcupar(regV);
+		delete regV;
+
+		RegistroDeLongitudVariable* regHijo = new RegistroDeLongitudVariable((char*)(&(*hi)), sizeof(int));
+		tamAcum += md->CalcularEspacioAOcupar(regHijo);
+		delete regHijo;
+		regHijo = NULL;
+
+		if (tamAcum > (this->m_capacidad / 2))
+			cant++;
+	}
+
+	return cant;
+}
+
 
 bool BKDNodoInternoDisco::EscribirEnBloque(Bloque* bloque)
 {
@@ -65,6 +224,17 @@ bool BKDNodoInternoDisco::EscribirEnBloque(Bloque* bloque)
 		RegistroDeLongitudVariable* regV = new RegistroDeLongitudVariable((char*)&hijo, sizeof(int));
 
 		Utils::LogDebug(Utils::dbgSS << "Intentando insertar registro de puntero a hijo... (posicion: " << idx << ")" );
+
+		if (!bloque->entra(regV))
+		{
+			UT::LogError(UT::errSS << "Error al intentar escribir nodo Interno "
+								   << this->m_nro_nodo
+								   << " al bloque: espacio insuficiente para escribir el registro de puntero a hijo en la posicion "
+								   << idx);
+			delete regV;
+			return false;
+		}
+
 		if (!bloque->insertarRegistro(regV))
 		{
 			UT::LogError(UT::errSS << "Error al intentar escribir nodo Interno "
@@ -128,6 +298,17 @@ bool BKDNodoInternoDisco::EscribirEnBloque(Bloque* bloque)
 		delete[] datosReg;
 
 		Utils::LogDebug(Utils::dbgSS << "Intentando insertar datos del registro de clave en el bloque...");
+
+		if (!bloque->entra(regV))
+		{
+			UT::LogError(UT::errSS << "Error al intentar escribir nodo Interno "
+								   << this->m_nro_nodo
+								   << " al bloque: espacio insuficiente para escribir el registro de clave en la posicion "
+								   << idx);
+			delete regV;
+			return false;
+		}
+
 		if (!bloque->insertarRegistro(regV))
 		{
 			UT::LogError(UT::errSS << "Error al intentar escribir nodo Interno "
@@ -316,7 +497,7 @@ bool BKDNodoInternoDisco::LeerDeBloque(Bloque* bloque)
 			return false;
 		}
 
-		BKDClave* clave = manDisco->InstanciarClave();
+		BKDClaveMultiple* clave = manDisco->InstanciarClave();
 
 		if (clave == NULL)
 		{

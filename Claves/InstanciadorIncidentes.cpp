@@ -27,9 +27,8 @@ BKDRegistro* InstanciadorIncidentes::InstanciarRegistro() const
 	return new Incidente();
 }
 
-BKDClave* InstanciadorIncidentes::InstanciarClave() const
+BKDClaveMultiple* InstanciadorIncidentes::InstanciarClave() const
 {
-	//*** return new ClaveIncidente();
-	return new ClaveInt(-1);
+	return new ClaveIncidente();
 }
 

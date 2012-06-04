@@ -16,7 +16,7 @@ public:
 	virtual ~BKDInstanciador() {};
 
 	virtual BKDRegistro* InstanciarRegistro() const = 0;
-	virtual BKDClave* InstanciarClave() const = 0;
+	virtual BKDClaveMultiple* InstanciarClave() const = 0;
 };
 
 

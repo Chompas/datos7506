@@ -46,7 +46,7 @@ namespace Pruebas
 
 		//BKDArbol* arbol = BKDArbol::CrearEnMemoria(cap_hoja, cap_int);
 
-		BKDArbol* arbol = BKDArbol::CrearEnDisco(filePath, 512, new InstanciadorIncidentes());
+		BKDArbol* arbol = BKDArbol::CrearEnDisco(filePath, 128, new InstanciadorIncidentes());
 		//BKDArbol* arbol = BKDArbol::AbrirDeDisco(filePath, new InstanciadorIncidentes());
 
 
@@ -64,7 +64,7 @@ namespace Pruebas
 		cout << endl;
 
 
-		int cantRegs = 1;
+		int cantRegs = 7;
 		vector<string> clavesInsert = vector<string>();
 
 		for (int i = 0; i < cantRegs; i++)
@@ -77,7 +77,13 @@ namespace Pruebas
 		for (int i = 0; i < cantRegs; i++)
 		//for (int i = cantRegs-1; i >= 0; i--)
 		{
-			Incidente reg = Incidente("Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;15");
+			stringstream ss;
+
+			ss << "Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;" << i;
+
+
+			Incidente reg = Incidente(ss.str());
+
 
 			if (!arbol->InsertarRegistro(reg))
 			{
@@ -86,7 +92,7 @@ namespace Pruebas
 				return -1;
 			}
 
-			Incidente reg2 = Incidente("Mitre;2011-10-2T12:12:45;no_cierra_puertas;incendio;16");
+			Incidente reg2 = Incidente("Belgrano_norte;2010-10-22T12:09:25;motores_al_80;desacoplado;25");
 
 			if (!arbol->InsertarRegistro(reg2))
 			{
