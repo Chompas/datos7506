@@ -227,7 +227,7 @@ BKDClave* Incidente::GetClave() const
 }
 
 BKDClaveMultiple* Incidente::GetClaveMultiple() const {
-	return new ClaveIncidente(this);
+	return new ClaveIncidente(*this);
 }
 
 std::string Incidente::ToString() const

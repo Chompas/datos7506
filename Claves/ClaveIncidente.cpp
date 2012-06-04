@@ -22,7 +22,7 @@ ClaveIncidente::ClaveIncidente(const ClaveIncidente& clave)
 
 }
 
-ClaveIncidente::ClaveIncidente(Incidente& incidente)
+ClaveIncidente::ClaveIncidente(const Incidente& incidente)
 {
 
 	//Inserto en orden las claves en el vector
@@ -59,7 +59,7 @@ int ClaveIncidente::GetDimension() {
 // -1: this < clave
 //  0: this == clave
 //  1: this > clave
-int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
+int ClaveIncidente::Comparar(const BKDClaveMultiple& clave)
 {
 
 	vector<BKDClave*>::const_iterator it2 = clave.m_subclaves.begin();

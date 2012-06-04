@@ -15,11 +15,11 @@ class ClaveIncidente : public BKDClaveMultiple {
 public:
 
 	ClaveIncidente(const ClaveIncidente& clave);
-	ClaveIncidente(Incidente& incidente);
+	ClaveIncidente(const Incidente& incidente);
 
 	virtual ~ClaveIncidente();
 
-	int Comparar(const BKDClaveMultiple& clave) const;
+	int Comparar(const BKDClaveMultiple& clave);
 
 	int GetDimension();
 
