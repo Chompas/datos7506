@@ -39,6 +39,7 @@ public:
 
 	virtual BKDNodo* CrearNodoOffline(int nivel);
 	virtual BKDRegistro* InstanciarRegistro();
+	virtual BKDClave* InstanciarClave();
 	virtual int CalcularEspacioAOcupar(Registro* registro);
 
 	virtual BKDNodo* AgregarNodo(int nivel);

@@ -341,6 +341,11 @@ BKDRegistro* BKDManagerDisco::InstanciarRegistro()
 	return this->m_instanciador->InstanciarRegistro();
 }
 
+BKDClave* BKDManagerDisco::InstanciarClave()
+{
+	return this->m_instanciador->InstanciarClave();
+}
+
 int BKDManagerDisco::CalcularEspacioAOcupar(Registro* registro)
 {
 	return this->m_arch->CalcularTamanioFinalRegistro(registro);
@@ -448,8 +453,6 @@ BKDNodo* BKDManagerDisco::AgregarNodo(int nivel)
 
 bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 {
-	bool res = false;
-
 	if (nodo == NULL)
 	{
 		UT::LogError(UT::errSS << "Error al intentar guardar nodo: el argumento es NULL.");
@@ -460,7 +463,10 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 	int nroBloque = NroNodoToNumBloque(nodo->GetNumeroNodo());
 
 	if (nroBloque < 0)
+	{
 		UT::LogError(UT::errSS << "Error al intentar guardar nodo: identificador invalido.");
+		return false;
+	}
 
 	Bloque* bl = m_arch->GetBloque(nroBloque);
 
@@ -477,10 +483,19 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 	rcn.Nivel = nodo->GetNivel();
 	Registro* regCtrl = GuardarRegistroControlNodo(rcn);
 
+	if (regCtrl == NULL)
+	{
+		UT::LogError(UT::errSS << "Error al intentar actualizar registro de control en bloque " << nroBloque);
+		delete bl;
+		return false;
+	}
+
 	if (!bl->insertarRegistroDeControl(regCtrl))
 	{
 		UT::LogError(UT::errSS << "Error al intentar actualizar registro de control en bloque " << nroBloque);
-		res = false;
+		delete bl;
+		delete regCtrl;
+		return false;
 	}
 
 	delete regCtrl;
@@ -489,30 +504,38 @@ bool BKDManagerDisco::GuardarNodo(BKDNodo* nodo)
 	{
 		BKDNodoHojaDisco* nodoHoja = (BKDNodoHojaDisco*)nodo;
 
-		if (nodoHoja->EscribirEnBloque(bl))
-			res = true;
-		else
+		if (!nodoHoja->EscribirEnBloque(bl))
+		{
 			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo());
+			delete bl;
+			return false;
+		}
 	}
 	else if (nodo->GetNivel() > 0)
 	{
 		BKDNodoInternoDisco* nodoInterno = (BKDNodoInternoDisco*)nodo;
 
-		if (nodoInterno->EscribirEnBloque(bl))
-			res = true;
-		else
+		if (!nodoInterno->EscribirEnBloque(bl))
+		{
 			UT::LogError(UT::errSS << "Error al escribir nodo a Bloque. Nro de nodo: " << nodo->GetNumeroNodo());
+			delete bl;
+			return false;
+		}
 	}
 
 	if (!m_arch->ActualizarBloque(nroBloque, *bl))
-			UT::LogError(UT::errSS << "Error al intentar actualizar bloque " << nroBloque);
+	{
+		UT::LogError(UT::errSS << "Error al intentar actualizar bloque " << nroBloque);
+		delete bl;
+		return false;
+	}
 
 	delete bl;
 
 	if (nodo->GetNumeroNodo() == this->m_raiz_id)
 		RefrescarRaiz();
 
-	return res;
+	return true;
 }
 
 bool BKDManagerDisco::BorrarNodo(int nroNodo)

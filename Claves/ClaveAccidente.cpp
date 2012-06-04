@@ -11,13 +11,14 @@
 #include <sstream>
 #include "../Disco/IndicesManager.h"
 
-namespace std {
+using namespace std;
+
 
 ClaveAccidente::ClaveAccidente(const int& accidente)
 	: ClaveInt(accidente)
 { }
 
-string ClaveAccidente::ToString() const {
+	string ClaveAccidente::ToString() const {
 
 	string valorStr;
 	IndicesManager *indiceLinea = new IndicesManager("Archivos/accidentes.txt");
@@ -74,4 +75,3 @@ int ClaveAccidente::Comparar(const BKDClave& clave) const
 	return retVal;
 }
 
-} /* namespace std */

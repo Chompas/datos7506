@@ -18,9 +18,21 @@
 using namespace std;
 
 
+ClaveIncidente::ClaveIncidente()
+{
+	this->m_dimension = -1;
+	this->m_subclaves.clear();
+}
+
 ClaveIncidente::ClaveIncidente(const ClaveIncidente& clave)
 {
+	this->m_dimension = clave.m_dimension;
+	this->m_subclaves.clear();
 
+	for (std::vector<BKDClave*>::const_iterator i = clave.m_subclaves.begin(); i != clave.m_subclaves.end(); i++)
+	{
+		this->m_subclaves.push_back((*i)->Clonar());
+	}
 }
 
 ClaveIncidente::ClaveIncidente(const Incidente& incidente)
@@ -109,11 +121,11 @@ string ClaveIncidente::ToString() const
 int ClaveIncidente::serializar (Buffer* buffer, int posicion){
 	char* stream = new char[20];
 	char* ptr = stream;
-	Buffer* buffClave;
+	Buffer buffClave = Buffer();
 	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it){
-		(*it)->serializar(buffClave, 0);
+		(*it)->serializar(&buffClave, 0);
 		int longitudStreamClave;
-		memcpy(ptr, buffClave->getStream(longitudStreamClave), sizeof(int));
+		memcpy(ptr, buffClave.getStream(longitudStreamClave), sizeof(int));
 		ptr++;
 		it++;
 	}

@@ -13,8 +13,10 @@
 class BKDInstanciador
 {
 public:
-	virtual BKDRegistro* InstanciarRegistro() const = 0;
 	virtual ~BKDInstanciador() {};
+
+	virtual BKDRegistro* InstanciarRegistro() const = 0;
+	virtual BKDClave* InstanciarClave() const = 0;
 };
 
 

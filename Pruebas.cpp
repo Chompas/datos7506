@@ -63,7 +63,8 @@ namespace Pruebas
 		cout << "Insertando valores 0..999";
 		cout << endl;
 
-		int cantRegs = 1;//70;
+
+		int cantRegs = 1;
 		vector<string> clavesInsert = vector<string>();
 
 		for (int i = 0; i < cantRegs; i++)

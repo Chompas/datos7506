@@ -17,6 +17,7 @@
 class BKDRegistro : public Serializable
 {
 public:
+	//virtual BKDClaveMultiple* GetClave() = 0;
 
 	//!! Importante: La memoria debe ser liberada por el usuario !!
 	virtual BKDClaveMultiple* GetClaveMultiple() const = 0;

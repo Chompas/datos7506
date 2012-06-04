@@ -270,23 +270,31 @@ Bloque* ArchivoBloques::GetBloque(int nroBloque)
 		return NULL;
 	}
 
+	Utils::LogDebug(Utils::dbgSS << "Leyendo datos del bloque...");
+
 	char* bf = new char[tamBloque];
 	this->m_file.read(bf, tamBloque);
 
 	if (this->m_file.fail())
 	{
 		Utils::LogError(Utils::errSS << "Error al intentar leer bloque de datos.");
+		delete[] bf;
 		return NULL;
 	}
 
 	if (this->m_file.gcount() != tamBloque)
 	{
 		Utils::LogError(Utils::errSS << "Error: Bloque de datos corrupto.");
+		delete[] bf;
 		return NULL;
 	}
 
+	Utils::LogDebug(Utils::dbgSS << "Bloque leido OK.");
+
 	Buffer buff = Buffer(bf, tamBloque);
 	delete[] bf;
+
+	Utils::LogDebug(Utils::dbgSS << "Hidratando Bloque...");
 
 	Bloque* bl = new Bloque(&buff, tamBloque);
 
@@ -294,9 +302,12 @@ Bloque* ArchivoBloques::GetBloque(int nroBloque)
 		Utils::LogError(Utils::errSS << "Error al hidratar bloque " << nroBloque);
 	else if (bl->getLongitud() != tamBloque)
 	{
-		Utils::LogError(Utils::errSS << "Error al hidratar bloque " << nroBloque);
+		Utils::LogError(Utils::errSS << "Error al hidratar bloque " << nroBloque << ", Tamanio invalido.");
 		delete bl;
+		return NULL;
 	}
+
+	Utils::LogDebug(Utils::dbgSS << "Bloque hidratado OK. Se recupero desde disco el bloque " << nroBloque);
 
 	return bl;
 }
@@ -347,9 +358,9 @@ Bloque* ArchivoBloques::AgregarBloque(int& nroBloque)
 		return NULL;
 	}
 
-	//*****************************************************************************
-	// TENGO QUE INCREMENTAR EL PUT POINTER ???
-	//*****************************************************************************
+	Utils::LogDebug(Utils::dbgSS << "Escritura puntero de bloque OK.");
+
+	Utils::LogDebug(Utils::dbgSS << "Escribiendo datos del bloque...");
 
 	int tamBF = 0;
 	char* bf = buff.getStream(tamBF);
@@ -426,12 +437,6 @@ bool ArchivoBloques::ActualizarBloque(int nroBloque, Bloque& bloque)
 		delete[] bf;
 		return NULL;
 	}
-
-	//*****************************************************************************
-	// TENGO QUE INCREMENTAR EL PUT POINTER ???
-	//*****************************************************************************
-
-
 
 	this->m_file.write(bf, tamBF);
 	delete[] bf;

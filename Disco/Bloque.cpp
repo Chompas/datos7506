@@ -22,7 +22,8 @@
 		this->registroDeControl = false;
 	}
 
-	void Bloque::actualizarEspacioLibre (size_t espacioLibre){
+	void Bloque::actualizarEspacioLibre (size_t espacioLibre)
+	{
 		this->espacioLibre = espacioLibre;
 	}
 
@@ -48,10 +49,6 @@
 				it++;
 			}
 		}
-
-		int libre = this->getLongitud() - espacioOcupado;
-
-		//Utils::LogDebug(Utils::dbgSS << " * ESPACIO LIBRE = " << libre);
 
 		return (this->getLongitud() - espacioOcupado);
 	}
@@ -116,7 +113,12 @@
 
 		Bloque::Bloque (Buffer* buffer, size_t longitud){
 			this->longitud = longitud;
-			hidratar(buffer, 0);
+
+			if (hidratar(buffer, 0) != 0)
+			{
+				Utils::LogError(Utils::errSS << "Error al construir bloque a partid de buffer.");
+				throw "Error al construir Bloque.";
+			}
 		}
 
 		Bloque::~Bloque (){
@@ -246,7 +248,10 @@
 			Registro* regAux = NULL;
 
 			if (existeRegistroDeControl())
-				regAux = clonarRegistro(this->registros[0]);
+			{
+				if (this->registros.size() > 0)
+					regAux = clonarRegistro(this->registros[0]);
+			}
 
 			return regAux;
 		}
@@ -362,12 +367,16 @@
 
 	int Bloque::hidratar (Buffer* buffer, int posicion)
 	{
+		//se vacia el bloque para dejarlo limpio.
+		vaciar();
+		actualizarEspacioLibre(0);
+
 		int longitud;
 		char* stream = buffer->getStream(longitud);
 
 		if (this->longitud != longitud)
 		{
-			//** cerr << "Error al hidratar bloque: la longitud del bloque no concuerda con la del buffer" << endl;
+			Utils::LogError(Utils::errSS << "Error al hidratar bloque: la longitud del bloque no concuerda con la del buffer");
 			delete[] stream;
 			return -1;
 		}
@@ -382,11 +391,9 @@
 			int longitudRLF;
 			char registroDeControl;
 
-			//se vacia el bloque para dejarlo limpio.
-			vaciar();
-
 			memcpy(&cantidadRegistros, ptr, sizeof(int));
 			ptr += sizeof(int);
+
 
 /*				memcpy(&espacioLibre, ptr, sizeof(int));
 			actualizarEspacioLibre (espacioLibre);
@@ -404,7 +411,10 @@
 			if (this->RLF){
 				memcpy(&longitudRLF, ptr, sizeof(int));
 				ptr += sizeof(int);
+				actualizarEspacioLibre(longitud - LCCBRLF - LCCRLF4);
 			}
+			else
+				actualizarEspacioLibre(longitud - LCCBRLV);
 
 			memcpy(&registroDeControl, ptr, sizeof(char));
 			switch (registroDeControl){

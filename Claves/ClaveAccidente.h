@@ -11,15 +11,13 @@
 #include "ClaveInt.h"
 #include <string>
 
-namespace std {
 
 class ClaveAccidente : public ClaveInt {
 public:
 	ClaveAccidente(const int& accidente);
 
 	virtual int Comparar(const BKDClave& clave) const;
-	virtual string ToString() const;
+	virtual std::string ToString() const;
 };
 
-} /* namespace std */
 #endif /* CLAVEACCIDENTE_H_ */

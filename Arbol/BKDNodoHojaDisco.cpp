@@ -23,7 +23,7 @@ BKDNodoHojaDisco::BKDNodoHojaDisco(BKDManager* manager,int nroNodo, int capacida
 
 bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 {
-	Utils::LogDebug(Utils::dbgSS << "Intentando escribir nodo a bloque en memoria...");
+	Utils::LogDebug(Utils::dbgSS << "Intentando escribir nodo Hoja a bloque en memoria...");
 
 	if (bloque == NULL)
 	{
@@ -49,6 +49,7 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 		Utils::LogDebug(Utils::dbgSS << "Se guardo correctamente el campo 'siguiente hoja'");
 
 	delete regSiguienteHoja;
+	regSiguienteHoja = NULL;
 
 	//grabo cada uno de los registros de datos
 
@@ -93,7 +94,7 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 		delete regV;
 	}
 
-	Utils::LogDebug(Utils::dbgSS << "Se escribio correctamente el nodo al bloque en memoria.");
+	Utils::LogDebug(Utils::dbgSS << "Se escribio correctamente el nodo Hoja al bloque en memoria.");
 
 	return true;
 }
@@ -101,9 +102,11 @@ bool BKDNodoHojaDisco::EscribirEnBloque(Bloque* bloque)
 
 bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 {
+	Utils::LogDebug(Utils::dbgSS << "Intentando Leer nodo Hoja desde bloque en memoria...");
+
 	if (bloque == NULL)
 	{
-		UT::LogError(UT::errSS << "Error al intentar Leer el nodo " << this->m_nro_nodo << ": bloque NULL");
+		UT::LogError(UT::errSS << "Error al intentar Leer el nodo Hoja " << this->m_nro_nodo << ": bloque NULL");
 		return false;
 	}
 
@@ -120,6 +123,8 @@ bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 	}
 
 	int regIdx = 1; //los registros van del 1 al N
+
+	Utils::LogDebug(Utils::dbgSS << "Intentando obtener informacion de siguiente hoja...");
 	//Leo el primer registro, que es el puntero a la siguiente hoja.
 	Registro* regSiguienteHoja = bloque->obtenerRegistro(regIdx);
 
@@ -162,8 +167,13 @@ bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 
 	BKDManagerDisco* manDisco = (BKDManagerDisco*)this->m_manager;
 
+	Utils::LogDebug(Utils::dbgSS << "Leyendo registros de datos al bloque... (cantidad de registros: "
+								 << cantRegs << ")" );
+
+
 	for (int i = 0; i < cantRegs; i++, regIdx++)
 	{
+		Utils::LogDebug(Utils::dbgSS << "Leyendo registro de datos numero " << regIdx << "...");
 		Registro* regDato = bloque->obtenerRegistro(regIdx);
 
 		if (regDato == NULL)
@@ -195,22 +205,25 @@ bool BKDNodoHojaDisco::LeerDeBloque(Bloque* bloque)
 		}
 
 		Buffer buffDato = Buffer(dato, tamDato);
+		delete[] dato;
+		dato = NULL;
 
 		if (regBKD->hidratar(&buffDato, 0) != 0)
 		{
 			UT::LogError(UT::errSS << "Error al leer el nodo " << this->m_nro_nodo
 								   << ", registro " << regIdx
 								   << ": No se pudo hidratar el registro");
-			delete[] dato;
+
 			delete regBKD;
 			return false;
 		}
 
 		this->m_registros.push_back(regBKD);
 
-		delete[] dato;
-		dato = NULL;
+		Utils::LogDebug(Utils::dbgSS << "Registro leido correctamente del bloque.");
 	}
+
+	Utils::LogDebug(Utils::dbgSS << "Se Leyo correctamente el nodo Hoja desde el bloque en memoria.");
 
 	return true;
 }

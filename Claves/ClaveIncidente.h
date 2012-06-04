@@ -14,6 +14,7 @@
 class ClaveIncidente : public BKDClaveMultiple {
 public:
 
+	ClaveIncidente();
 	ClaveIncidente(const ClaveIncidente& clave);
 	ClaveIncidente(const Incidente& incidente);
 
