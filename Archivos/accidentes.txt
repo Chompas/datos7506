@@ -1,7 +1,8 @@
-1;choque_con_otra_formacion
-2;incendio
-3;choque_con_estacion
-4;descarrilado
-5;desacoplado
-6;no_enciende
-7;corte_energia_en_tramo
+1;no_accidente
+2;choque_con_otra_formacion
+3;incendio
+4;choque_con_estacion
+5;descarrilado
+6;desacoplado
+7;no_enciende
+8;corte_energia_en_tramo

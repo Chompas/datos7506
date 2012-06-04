@@ -68,6 +68,8 @@ std::list<Incidente> IndiceDatos::BuscarPorRango(Incidente incidenteMin, Inciden
 	ClaveIncidente claveMin = ClaveIncidente(incidenteMin);
 	ClaveIncidente claveMax = ClaveIncidente(incidenteMax);
 
+	m_arbolBKD->DebugPrintAll();
+
 	if (!this->m_arbolBKD->BuscarPorRango(claveMin, claveMax, outList)) {
 
 		cout << "No hay Incidentes para ese criterio de busqueda" << endl;

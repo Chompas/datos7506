@@ -138,7 +138,7 @@ int main(int argc, char* argv[])
 	try
 	{
 		//***********************
-		//return Pruebas::PruebaArbolB2();
+		return Pruebas::PruebaArbolB2();
 		//***********************
 
 		ifstream my_file("treeTest.UBA");
