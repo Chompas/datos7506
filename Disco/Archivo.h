@@ -8,7 +8,8 @@
 #ifndef ARCHIVO_H_
 #define ARCHIVO_H_
 
-#include <iostream>
+//#include <iostream>
+#include <fstream>
 #include <string>
 #include <vector>
 
@@ -19,23 +20,23 @@ class Archivo {
 private:
 	fstream archivo;
 	fstream archivoControl;
-	char* nombreArchivo;
+	string nombreArchivo;
 	int longitudBloque;
 	int cantidadBloquesTotal;
 	vector<int> bloquesLibres;
 
 	void obtenerDatosDeControl();
 
-	void persistirDatosDeControl();
+	void guardarDatosDeControl();
 
 public:
 	Archivo(char* nombreArchivo, int longitudBloque = LBD);
 
 	virtual ~Archivo();
 
-	Bloque* obtenerNuevoBloque (int &idBloque);
+	int obtenerNuevoBloque (Bloque* &bloque, int &idBloque);
 
-	int obtenerBloque (Bloque* bloque, int idBloque);
+	int obtenerBloque (Bloque* &bloque, int idBloque);
 
 	int actualizarBloque (Bloque* bloque, int idBloque);
 
@@ -45,9 +46,9 @@ public:
 
 	int cantidadBloquesTotales ();
 
-	int cabtidadBloquesOcupados ();
+	int cantidadBloquesOcupados ();
 
-	int obtenerBloqueLibre (Bloque *bloque, int &idBloque);
+	int obtenerBloqueLibre (Bloque* &bloque, int &idBloque);
 
 };
 

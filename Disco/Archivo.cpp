@@ -11,29 +11,40 @@
 #include "Archivo.h"
 #include "Buffer.h"
 
+#include <iostream>
+
 void Archivo::obtenerDatosDeControl(){
-	char* buff = new char[4];
-	int cantidadBloquesLibres;
+	this->archivoControl.open (NOMBRE_ARCHIVO_CONTROL.c_str(), fstream::binary | fstream::in);
 
-	this->archivoControl.seekg (0, ios::beg);
-	this->archivoControl.read (buff, 4);
-	memcpy (buff, &this->longitudBloque, sizeof(int));
-	this->archivoControl.read (buff, 4);
-	memcpy (buff, &this->cantidadBloquesTotal, sizeof(int));
-	this->archivoControl.read (buff, 4);
-	memcpy (buff, &cantidadBloquesLibres, sizeof(int));
+	this->archivoControl.seekg (0, ios::end);
+	if (this->archivoControl.tellg() > -1){
+		char* buff = new char[4];
+		int cantidadBloquesLibres = 0;
 
-	for (int contador = 1; contador <= cantidadBloquesLibres; contador++){
-		int idBloqueLibre;
+		this->archivoControl.seekg (0, ios::beg);
 		this->archivoControl.read (buff, 4);
-		memcpy (buff, &idBloqueLibre, sizeof(int));
-		this->bloquesLibres.push_back(idBloqueLibre);
+		memcpy (&this->longitudBloque, buff, sizeof(int));
+		this->archivoControl.read (buff, 4);
+		memcpy (&this->cantidadBloquesTotal, buff , sizeof(int));
+		this->archivoControl.read (buff, 4);
+		memcpy (&cantidadBloquesLibres, buff, sizeof(int));
+
+		for (int contador = 1; contador <= cantidadBloquesLibres; contador++){
+			int idBloqueLibre;
+			this->archivoControl.read (buff, 4);
+			memcpy (&idBloqueLibre, buff, sizeof(int));
+			this->bloquesLibres.push_back(idBloqueLibre);
+		}
+
+		delete []buff;
 	}
 
-	delete []buff;
+	this->archivoControl.close();
 }
 
-void Archivo::persistirDatosDeControl(){
+void Archivo::guardarDatosDeControl(){
+	this->archivoControl.open (NOMBRE_ARCHIVO_CONTROL.c_str(), fstream::binary | fstream::out | fstream::trunc);
+
 	int longitudStream = LCCAC + this->cantidadBloquesLibres() * 4;
 	char* stream = new char[longitudStream];
 	char* ptr = stream;
@@ -55,43 +66,38 @@ void Archivo::persistirDatosDeControl(){
 		it++;
 	}
 
-	this->archivoControl.seekp (0, ios::beg);
 	this->archivoControl.write (stream, longitudStream);
+
+	this->archivoControl.close();
 
 	delete []stream;
 }
 
 Archivo::Archivo(char* nombreArchivo, int longitudBloque) {
-	this->archivo.open (nombreArchivo, fstream::binary | fstream::in | fstream::out);
 	this->nombreArchivo = nombreArchivo;
-	this->archivoControl.open ("control.dat", fstream::binary | fstream::in | fstream::out);
 	this->longitudBloque = longitudBloque;
 	this->cantidadBloquesTotal = 0;
 	obtenerDatosDeControl();
 }
 
 Archivo::~Archivo() {
-	this->archivo.close();
-	this->archivoControl.close();
-	persistirDatosDeControl();
+	guardarDatosDeControl();
 }
 
-Bloque* Archivo::obtenerNuevoBloque (int &idBloque){
-	Bloque* bloque = new Bloque (this->longitudBloque);
-
-	this->archivo.seekg (0, ios::end);
-	if (this->archivo.tellg() >-1)
-		idBloque = (this->archivo.tellg() / this->longitudBloque);
-	else
+int Archivo::obtenerNuevoBloque (Bloque* &bloque, int &idBloque){
+	bloque = new Bloque (this->longitudBloque);
+	if (this->cantidadBloquesTotal == 0)
 		idBloque = 0;
+	else
+		idBloque = this->cantidadBloquesTotal;
 
-	this->cantidadBloquesTotal++;
-
-	return bloque;
+	return 0;
 }
 
-int Archivo::obtenerBloque (Bloque* bloque, int idBloque){
-	if (idBloque < this->cantidadBloquesTotal){
+int Archivo::obtenerBloque (Bloque* &bloque, int idBloque){
+	if ((idBloque < this->cantidadBloquesTotal) and (idBloque > -1)){
+		this->archivo.open (this->nombreArchivo.c_str(), fstream::binary | fstream::in);
+
 		char* stream = new char[this->longitudBloque];
 		int posicion = idBloque * this->longitudBloque;
 
@@ -101,8 +107,10 @@ int Archivo::obtenerBloque (Bloque* bloque, int idBloque){
 		Buffer* buffer = new Buffer (stream, this->longitudBloque);
 		bloque = new Bloque (buffer, this->longitudBloque);
 
-		delete (stream);
+		delete []stream;
 		delete (buffer);
+
+		this->archivo.close();
 
 		return 0;
 	}else
@@ -112,35 +120,53 @@ int Archivo::obtenerBloque (Bloque* bloque, int idBloque){
 int Archivo::actualizarBloque (Bloque* bloque, int idBloque){
 	int posicion = idBloque * this->longitudBloque;
 
-	this->archivo.seekp (posicion);
-	Buffer* buffer = NULL;
-	bloque->serializar(buffer, this->longitudBloque);
-	this->archivo.write(buffer->getStream(this->longitudBloque), this->longitudBloque);
+	if (idBloque <= this->cantidadBloquesTotal){
+		this->archivo.open (this->nombreArchivo.c_str(), fstream::binary | fstream::out);
 
-	delete buffer;
+		this->archivo.seekp (posicion);
+		Buffer* buffer = new Buffer();
+		bloque->serializar(buffer, 0);
+		int longitudBuffer = 0;
+		char* stream = buffer->getStream(longitudBuffer);
+		this->archivo.write(stream, this->longitudBloque);
 
-	return 0;
+		delete []stream;
+		delete buffer;
+
+		if (idBloque == this->cantidadBloquesTotal)
+			this->cantidadBloquesTotal++;
+
+		this->archivo.close();
+
+		return 0;
+	}else
+		return 1;
 }
 
 int Archivo::liberarBloque (int idBloque){
 	std::vector<int>::iterator it = this->bloquesLibres.begin();
 
-	if (this->bloquesLibres.size() > 0){
-
-		//verifica si ya est libre
-		unsigned int contador = 0;
-		while ((*it != idBloque) and (contador < this->bloquesLibres.size())){
+	if (cantidadBloquesLibres() > 0){
+		//verifica si ya esta libre
+		int contador = 0;
+		bool existe = false;
+		while ((!existe) && (contador < cantidadBloquesLibres ())){
+			if ((*it) == idBloque)
+				existe = true;
 			it++;
 			contador++;
 		}
+
+		if (existe)
+			return 1;
 	}
 
-	if (*it == idBloque)
-		return 1;
-	else{
-		this->bloquesLibres.push_back(idBloque);
-		return 0;
-		}
+	if (idBloque > cantidadBloquesTotales() - 1)
+		return 2;
+
+	this->bloquesLibres.push_back(idBloque);
+
+	return 0;
 }
 
 int Archivo::cantidadBloquesLibres (){
@@ -151,11 +177,11 @@ int Archivo::cantidadBloquesTotales (){
 	return (this->cantidadBloquesTotal);
 }
 
-int Archivo::cabtidadBloquesOcupados (){
+int Archivo::cantidadBloquesOcupados (){
 	return  (this->cantidadBloquesTotal - cantidadBloquesLibres());
 }
 
-int Archivo::obtenerBloqueLibre (Bloque *bloque, int &idBloque){
+int Archivo::obtenerBloqueLibre (Bloque* &bloque, int &idBloque){
 	if (cantidadBloquesLibres() > 0){
 		std::vector<int>::iterator it = this->bloquesLibres.begin();
 		//entrega el primer bloque libre de la lista
