@@ -149,10 +149,9 @@ bool BKDArbol::InsertarRegistro(const BKDRegistro& registro)
 			cerr << "Error al intentar guardar nuevo hijo izquierdo: " << reemplazo->GetNumeroNodo() << endl;
 		if (!this->m_manager->GuardarNodo(hermanoDer))
 			cerr << "Error al intentar guardar nuevo hijo derecho: " << hermanoDer->GetNumeroNodo() << endl;
-		/*
 		if (!this->m_manager->GuardarNodo(nuevaRaiz))
 			cerr << "Error al intentar guardar nueva raiz: " << nuevaRaiz->GetNumeroNodo() << endl;
-		*/
+
 		delete clavePromovida;
 		delete reemplazo;
 		delete hermanoDer;

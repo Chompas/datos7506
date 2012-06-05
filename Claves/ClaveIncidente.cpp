@@ -152,12 +152,32 @@ string ClaveIncidente::ToString() const
 	return ss.str();
 }
 
+
+
+/*
+int ClaveIncidente::serializar (Buffer* buffer, int posicion)
+{
+	char* stream = new char[5*sizeof(int)];
+	char* ptr = stream;
+
+	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); it++)
+	{
+		ClaveInt* clave = (ClaveInt*)(*it);
+		memcpy(ptr,&(clave->Valor), sizeof(int));
+		ptr += sizeof(int);
+	}
+
+	buffer->setStream(stream, 5*sizeof(int));
+	delete[] stream;
+
+	return 0;
+}
+*/
+
 int ClaveIncidente::serializar (Buffer* buffer, int posicion)
 {
 	char* stream = new char[this->getLongitud()];
 	char* ptr = stream;
-
-	int sizeVector = this->m_subclaves.size();
 
 	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); it++)
 	{
@@ -167,13 +187,10 @@ int ClaveIncidente::serializar (Buffer* buffer, int posicion)
 		char* scBuf = buffClave->getStream(longitudStreamClave);
 		delete[] buffClave;
 
-
-
 		memcpy(ptr,scBuf, longitudStreamClave);
 		delete[] scBuf;
 
 		ptr += longitudStreamClave;
-		it++;
 	}
 
 	buffer->setStream(stream, this->getLongitud());
@@ -212,23 +229,23 @@ int ClaveIncidente::hidratar (Buffer* buffer, int posicion)
 
 	memcpy(&aux, ptr, sizeof(int));
 	this->m_subclaves.push_back(new ClaveLinea(aux));
-	buf += sizeof(int);
+	ptr += sizeof(int);
 
 	memcpy(&aux, ptr, sizeof(int));
 	this->m_subclaves.push_back(new ClaveInt(aux));
-	buf += sizeof(int);
+	ptr += sizeof(int);
 
 	memcpy(&aux, ptr, sizeof(int));
 	this->m_subclaves.push_back(new ClaveFalla(aux));
-	buf += sizeof(int);
+	ptr += sizeof(int);
 
 	memcpy(&aux, ptr, sizeof(int));
 	this->m_subclaves.push_back(new ClaveAccidente(aux));
-	buf += sizeof(int);
+	ptr += sizeof(int);
 
 	memcpy(&aux, ptr, sizeof(int));
 	this->m_subclaves.push_back(new ClaveInt(aux));
-	buf += sizeof(int);
+	ptr += sizeof(int);
 
 	delete[] buf;
 
