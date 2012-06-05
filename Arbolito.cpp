@@ -141,7 +141,14 @@ int main(int argc, char* argv[])
 		//return Pruebas::PruebaArbolB2();
 		//***********************
 
-		indice = IndiceDatos::Crear("treeTest.UBA", 512);
+		ifstream my_file("treeTest.UBA");
+		if (my_file.good()) {
+			cout << "El archivo existe, abriendo treeTest.UBA" << endl;
+			indice = IndiceDatos::Abrir("treeTest.UBA", 128);
+		} else {
+			cout << "El archivo no existe, creando treeTest.UBA" << endl;
+			indice = IndiceDatos::Crear("treeTest.UBA", 128);
+		}
 
 		cout << "===========================" << endl;
 		cout << "1. Insertar nuevo incidente" << endl;
