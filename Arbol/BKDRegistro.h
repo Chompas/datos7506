@@ -17,11 +17,9 @@
 class BKDRegistro : public Serializable
 {
 public:
-	//virtual BKDClaveMultiple* GetClave() = 0;
 
 	//!! Importante: La memoria debe ser liberada por el usuario !!
-	virtual BKDClaveMultiple* GetClaveMultiple() const = 0;
-	virtual BKDClave* GetClave() const = 0;
+	virtual BKDClaveMultiple* GetClave() const = 0;
 	virtual std::string ToString() const = 0;
 	virtual BKDRegistro* Clonar() const = 0;
 };

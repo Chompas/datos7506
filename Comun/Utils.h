@@ -23,6 +23,7 @@ namespace Utils
 
 	void LogDebug(const std::ostream& mensaje);
 
+	std::string TimeStampToString(const time_t timestamp);
 
 
 

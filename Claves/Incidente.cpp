@@ -8,6 +8,7 @@
 #include "Incidente.h"
 #include "../Disco/IndicesManager.h"
 #include "../Disco/Constantes.h"
+#include "../Comun/Utils.h"
 
 #include <vector>
 #include <sstream>
@@ -221,12 +222,15 @@ int Incidente::hidratar (Buffer* buffer, int posicion){
 
 // Implementacion de BKDRegistro
 
+/*
 BKDClave* Incidente::GetClave() const
 {
 	return new ClaveInt(this->formacion);
 }
+*/
 
-BKDClaveMultiple* Incidente::GetClaveMultiple() const {
+BKDClaveMultiple* Incidente::GetClave() const
+{
 	return new ClaveIncidente(*this);
 }
 
@@ -236,6 +240,8 @@ std::string Incidente::ToString() const
 	IndicesManager *indiceFalla = new IndicesManager("Archivos/fallas.txt");
 	fallaStr = indiceFalla->obtenerValor(falla);
 	delete indiceFalla;
+
+	string horarioStr = Utils::TimeStampToString(this->horario);
 
 	string accidenteStr;
 	IndicesManager *indiceAccidente = new IndicesManager("Archivos/accidentes.txt");
@@ -254,7 +260,7 @@ std::string Incidente::ToString() const
 	ss << lineaStr;
 	ss << "') , ";
 	ss << "('";
-	ss << this->horario;
+	ss << horarioStr;
 	ss << "') , ";
 	ss << "('";
 	ss << fallaStr;
@@ -270,7 +276,9 @@ std::string Incidente::ToString() const
 	return ss.str();
 }
 
-std::string Incidente::ToStringClaves() const {
+std::string Incidente::ToStringClaves() const
+{
+
 	stringstream ss;
 	ss << " [";
 	ss << "('";

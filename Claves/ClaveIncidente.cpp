@@ -6,10 +6,13 @@
  */
 
 #include "ClaveIncidente.h"
+
 #include "ClaveInt.h"
 #include "ClaveAccidente.h"
 #include "ClaveFalla.h"
 #include "ClaveLinea.h"
+#include "../Comun/Utils.h"
+
 #include <vector>
 #include <stdio.h>
 #include <string.h>
@@ -22,6 +25,17 @@ ClaveIncidente::ClaveIncidente()
 {
 	this->m_dimension = -1;
 	this->m_subclaves.clear();
+
+	ClaveLinea *claveLinea =  new ClaveLinea(0);
+	this->m_subclaves.push_back(claveLinea);
+	ClaveInt *claveHorario = new ClaveInt(0);
+	this->m_subclaves.push_back(claveHorario);
+	ClaveFalla *claveFalla = new ClaveFalla(0);
+	this->m_subclaves.push_back(claveFalla);
+	ClaveAccidente *claveAccidente = new ClaveAccidente(0);
+	this->m_subclaves.push_back(claveAccidente);
+	ClaveInt *claveFormacion = new ClaveInt(0);
+	this->m_subclaves.push_back(claveFormacion);
 }
 
 ClaveIncidente::ClaveIncidente(const ClaveIncidente& clave)
@@ -58,14 +72,13 @@ ClaveIncidente::~ClaveIncidente() {
 	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it)
 	{
 		delete *it;
-
 	}
 
 	this->m_subclaves.clear();
 }
 
-int ClaveIncidente::GetDimension() const {
-
+int ClaveIncidente::GetDimensiones() const
+{
 	return (int) m_subclaves.size();
 }
 
@@ -96,7 +109,21 @@ int ClaveIncidente::Comparar(const BKDClaveMultiple& clave) const
 	return resultado;
 }
 
-BKDClave* ClaveIncidente::GetSubclave(int dimension) const {
+int ClaveIncidente::CompararPorSubclave(const BKDClave& subclave, const int dimension) const
+{
+	BKDClave* misubclave = this->GetSubclave(dimension);
+	int res = misubclave->Comparar(subclave);
+	delete misubclave;
+	return res;
+}
+
+BKDClave* ClaveIncidente::GetSubclave(int dimension) const
+{
+	if (m_dimension >= (int)this->m_subclaves.size())
+	{
+		Utils::LogError(Utils::errSS << "Error al obtener subclave, dimension invalida: " << dimension);
+		return NULL;
+	}
 
 	return m_subclaves[dimension];
 }
@@ -107,9 +134,16 @@ string ClaveIncidente::ToString() const
 	stringstream ss;
 	ss << " [";
 
-	for ( it=m_subclaves.begin() ; it < m_subclaves.end(); it++ ) {
+	int i = 0;
+	for ( it=m_subclaves.begin() ; it < m_subclaves.end(); it++, i++ ) {
 		ss << "('";
-		ss << (*it)->ToString();
+		if(i == 1)
+		{
+			ClaveInt* cli = (ClaveInt*)*it;
+			ss << Utils::TimeStampToString(cli->Valor);
+		}
+		else
+			ss << (*it)->ToString();
 		ss << "') , ";
 	}
 
@@ -118,31 +152,97 @@ string ClaveIncidente::ToString() const
 	return ss.str();
 }
 
-int ClaveIncidente::serializar (Buffer* buffer, int posicion){
-	char* stream = new char[20];
+int ClaveIncidente::serializar (Buffer* buffer, int posicion)
+{
+	char* stream = new char[this->getLongitud()];
 	char* ptr = stream;
-	Buffer buffClave = Buffer();
-	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); ++it){
-		(*it)->serializar(&buffClave, 0);
+
+	int sizeVector = this->m_subclaves.size();
+
+	for (vector<BKDClave*>::const_iterator it = this->m_subclaves.begin(); it != this->m_subclaves.end(); it++)
+	{
+		Buffer* buffClave = new Buffer();
+		(*it)->serializar(buffClave, 0);
 		int longitudStreamClave;
-		memcpy(ptr, buffClave.getStream(longitudStreamClave), sizeof(int));
-		ptr++;
+		char* scBuf = buffClave->getStream(longitudStreamClave);
+		delete[] buffClave;
+
+
+
+		memcpy(ptr,scBuf, longitudStreamClave);
+		delete[] scBuf;
+
+		ptr += longitudStreamClave;
 		it++;
 	}
 
-	buffer->setStream(stream, 20);
+	buffer->setStream(stream, this->getLongitud());
 
-	delete stream;
+	delete[] stream;
 
 	return 0;
 }
 
-int ClaveIncidente::hidratar (Buffer* buffer, int posicion){
-	//TO DO
+int ClaveIncidente::hidratar (Buffer* buffer, int posicion)
+{
+	if (buffer == NULL)
+	{
+		Utils::LogError(Utils::errSS << "Error al hidratar ClaveIncidente: Buffer NULL");
+		return -1;
+	}
+
+	int longBuf = 0;
+	char* buf = buffer->getStream(longBuf);
+
+	if (buf == NULL)
+	{
+		Utils::LogError(Utils::errSS << "Error al hidratar ClaveIncidente: Stream NULL");
+		return -1;
+	}
+
+	if (longBuf != this->getLongitud())
+	{
+		Utils::LogError(Utils::errSS << "Error al hidratar ClaveIncidente: longitud invalida");
+		delete[] buf;
+		return -1;
+	}
+
+	int aux = 0;
+	char* ptr = buf;
+
+	memcpy(&aux, ptr, sizeof(int));
+	this->m_subclaves.push_back(new ClaveLinea(aux));
+	buf += sizeof(int);
+
+	memcpy(&aux, ptr, sizeof(int));
+	this->m_subclaves.push_back(new ClaveInt(aux));
+	buf += sizeof(int);
+
+	memcpy(&aux, ptr, sizeof(int));
+	this->m_subclaves.push_back(new ClaveFalla(aux));
+	buf += sizeof(int);
+
+	memcpy(&aux, ptr, sizeof(int));
+	this->m_subclaves.push_back(new ClaveAccidente(aux));
+	buf += sizeof(int);
+
+	memcpy(&aux, ptr, sizeof(int));
+	this->m_subclaves.push_back(new ClaveInt(aux));
+	buf += sizeof(int);
+
+	delete[] buf;
+
 	return 0;
 }
 
-int ClaveIncidente::getLongitud() {
-	//TO DO
-	return 0;
+int ClaveIncidente::getLongitud()
+{
+	return sizeof(int) * this->GetDimensiones();
 }
+
+BKDClaveMultiple* ClaveIncidente::Clonar() const
+{
+	return new ClaveIncidente(*this);
+}
+
+

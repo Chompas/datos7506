@@ -41,21 +41,31 @@ namespace Utils
 	}
 
     void LogDebug(const ostream& mensaje)
-    	{
-    		if (!debugMode)
-    			return;
+	{
+		if (!debugMode)
+			return;
 
-    		stringstream* aa = (stringstream*)&mensaje;
+		stringstream* aa = (stringstream*)&mensaje;
 
-    		cout << endl;
+		cout << endl;
 
-    		if (aa != &dbgSS && !dbgSS.str().empty())
-    			cout << dbgSS.str() << flush;
+		if (aa != &dbgSS && !dbgSS.str().empty())
+			cout << dbgSS.str() << flush;
 
-        	cout << aa->str() << endl << endl << flush;
+		cout << aa->str() << endl << endl << flush;
 
-        	dbgSS.str(string());
-    	}
+		dbgSS.str(string());
+	}
+
+    string TimeStampToString(const time_t timestamp)
+    {
+		char* cstr = new char[20];
+		struct tm * a = localtime(&timestamp);
+		strftime(cstr, 20, "%d/%m/%Y %H:%M", a);
+		string str = cstr;
+		delete[] cstr;
+		return str;
+    }
 
 
 

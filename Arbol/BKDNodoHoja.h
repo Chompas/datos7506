@@ -30,16 +30,16 @@ public:
 	virtual bool HayUnderflow();
 	virtual int CantidadAMover(); //Indica la cantidad de registros que se deberían mover del nodo en overflow al nuevo hermano derecho
 
-	virtual bool BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro);
-	virtual bool BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado);
+	virtual bool BuscarReg(const BKDClaveMultiple& clave, BKDRegistro** registro, int profundidad);
+	virtual bool BuscarRango(const BKDClaveMultiple& claveInicio, const BKDClaveMultiple& claveFin, std::list<BKDRegistro*>& resultado, int profundidad);
 
-	virtual bool InsertarReg(const BKDRegistro& registro, bool& overflow);
-	virtual bool ModificarReg(const BKDRegistro& registro);
-	virtual bool EliminarReg(const BKDClave& clave);
+	virtual bool InsertarReg(const BKDRegistro& registro, bool& overflow, int profundidad);
+	virtual bool ModificarReg(const BKDRegistro& registro, int profundidad);
+	virtual bool EliminarReg(const BKDClaveMultiple& clave, int profundidad);
 
 	//Resuelve un overflow en el nodo actual. Devuelve el nuevo hermano creado, y la clave a promover por referencia
 	//Ante un error, devuelve NULL como retorno
-	virtual BKDNodo* ResolverOverflow(BKDClave** clavePromovida);
+	virtual BKDNodo* ResolverOverflow(BKDClaveMultiple** clavePromovida);
 
 	//Recibe un puntero a nodo hoja, el cual será modificado para ser un clon del nodo actual
 	virtual bool ClonarNodo(BKDNodo* nodo, bool clonarNroNodo);

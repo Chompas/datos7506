@@ -43,8 +43,7 @@ public:
 	virtual int hidratar (Buffer* buffer, int posicion);
 
 	//!! Importante: La memoria debe ser liberada por el usuario !!
-	virtual BKDClave* GetClave() const;
-	virtual BKDClaveMultiple* GetClaveMultiple() const;
+	virtual BKDClaveMultiple* GetClave() const;
 	virtual std::string ToString() const;
 	virtual std::string ToStringClaves() const;
 	virtual BKDRegistro* Clonar() const;

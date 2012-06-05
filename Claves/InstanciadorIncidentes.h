@@ -17,7 +17,7 @@ public:
 	virtual ~InstanciadorIncidentes();
 
 	virtual BKDRegistro* InstanciarRegistro() const;
-	virtual BKDClave* InstanciarClave() const;
+	virtual BKDClaveMultiple* InstanciarClave() const;
 };
 
 #endif /* INSTANCIADORINCIDENTES_H_ */
